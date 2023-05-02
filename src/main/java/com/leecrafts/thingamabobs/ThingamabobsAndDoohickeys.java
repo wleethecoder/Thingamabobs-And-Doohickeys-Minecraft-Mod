@@ -1,5 +1,7 @@
 package com.leecrafts.thingamabobs;
 
+import com.leecrafts.thingamabobs.item.ModItems;
+import com.leecrafts.thingamabobs.packet.PacketHandler;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.BlockItem;
@@ -46,6 +48,8 @@ public class ThingamabobsAndDoohickeys
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        ModItems.register(modEventBus);
+
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
@@ -66,6 +70,9 @@ public class ThingamabobsAndDoohickeys
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
         LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
+
+        event.enqueueWork(PacketHandler::init);
+
     }
 
     private void addCreative(CreativeModeTabEvent.BuildContents event)

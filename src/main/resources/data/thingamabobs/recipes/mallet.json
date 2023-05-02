@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": {
+      "item": "minecraft:stick"
+    },
+    "X": {
+      "item": "minecraft:iron_block"
+    }
+  },
+  "pattern": [
+    "XXX",
+    "XXX",
+    " # "
+  ],
+  "result": {
+    "item": "thingamabobs:mallet"
+  },
+  "show_notification": true
+}
