@@ -3,7 +3,8 @@
 	"texture_size": [32, 32],
 	"textures": {
 		"2": "thingamabobs:item/mallet/hammer",
-		"3": "thingamabobs:item/mallet/handle"
+		"3": "thingamabobs:item/mallet/handle",
+		"particle": "thingamabobs:item/mallet/handle"
 	},
 	"elements": [
 		{

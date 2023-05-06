@@ -24,14 +24,22 @@ public class PlayerCapProvider implements ICapabilitySerializable<CompoundTag> {
     public CompoundTag serializeNBT() {
         CompoundTag nbt = new CompoundTag();
         if (ModCapabilities.PLAYER_CAPABILITY == null) return nbt;
-        nbt.putBoolean("left_click", playerCap.leftClick);
+        nbt.putInt("mallet_charge", playerCap.malletCharge);
+        nbt.putInt("mallet_equip_animation", playerCap.malletEquipAnim);
+        nbt.putInt("mallet_swing_animation", playerCap.malletSwingAnim);
+        nbt.putInt("mallet_pickup_animation", playerCap.malletPickupAnim);
+        nbt.putBoolean("was_holding_mallet", playerCap.wasHoldingMallet);
         return nbt;
     }
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
         if (ModCapabilities.PLAYER_CAPABILITY != null) {
-            playerCap.leftClick = nbt.getBoolean("left_click");
+            playerCap.malletCharge = nbt.getInt("mallet_charge");
+            playerCap.malletEquipAnim = nbt.getInt("mallet_equip_animation");
+            playerCap.malletSwingAnim = nbt.getInt("mallet_swing_animation");
+            playerCap.malletPickupAnim = nbt.getInt("mallet_pickup_animation");
+            playerCap.wasHoldingMallet = nbt.getBoolean("was_holding_mallet");
         }
     }
 

@@ -21,9 +21,9 @@ public class PacketHandler {
 
     public static void init() {
         int index = 0;
-        INSTANCE.messageBuilder(ServerboundLeftClickPacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ServerboundLeftClickPacket::encode).decoder(ServerboundLeftClickPacket::new)
-                .consumerMainThread(ServerboundLeftClickPacket::handle).add();
+        INSTANCE.messageBuilder(ServerboundComicallyLargeMalletAttackPacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerboundComicallyLargeMalletAttackPacket::encode).decoder(ServerboundComicallyLargeMalletAttackPacket::new)
+                .consumerMainThread(ServerboundComicallyLargeMalletAttackPacket::handle).add();
     }
 
 }
