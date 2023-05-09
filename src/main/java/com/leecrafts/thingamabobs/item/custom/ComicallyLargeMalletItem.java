@@ -128,6 +128,7 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
 
             @Override
             public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
+                if (player.getOffhandItem() == itemInHand) return false;
                 player.getCapability(ModCapabilities.PLAYER_CAPABILITY).ifPresent(iPlayerCap -> {
                     PlayerCap playerCap = (PlayerCap) iPlayerCap;
                     // TODO find a better way (please)

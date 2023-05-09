@@ -1,0 +1,12 @@
+{
+  "item.mallet.wham": {
+    "subtitle": "sounds.thingamabobs.item.mallet.wham",
+    "sounds": [
+      "thingamabobs:mallet/wham1",
+      "thingamabobs:mallet/wham2",
+      "thingamabobs:mallet/wham3",
+      "thingamabobs:mallet/wham4",
+      "thingamabobs:mallet/wham5"
+    ]
+  }
+}

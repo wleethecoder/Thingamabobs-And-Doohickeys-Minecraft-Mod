@@ -1,7 +1,9 @@
 package com.leecrafts.thingamabobs.packet;
 
+import com.leecrafts.thingamabobs.sound.ModSounds;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -36,6 +38,10 @@ public class ServerboundComicallyLargeMalletAttackPacket {
                         sender.attackStrengthTicker = CHARGE_TIME;
                         sender.attack(entity);
                     }
+                }
+                // TODO what about non-attackable entities?
+                if (list.length > 0) {
+                    sender.level.playSound(null, sender, ModSounds.COMICALLY_LARGE_MALLET_WHAM.get(), SoundSource.PLAYERS, 5.0f, (sender.getRandom().nextFloat() - sender.getRandom().nextFloat()) * 0.2F + 1.0F);
                 }
             }
         });

@@ -8,24 +8,36 @@ import com.leecrafts.thingamabobs.capability.player.PlayerCapProvider;
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.packet.PacketHandler;
 import com.leecrafts.thingamabobs.packet.ServerboundComicallyLargeMalletAttackPacket;
+import com.leecrafts.thingamabobs.render.GeckoPlayer;
+import com.leecrafts.thingamabobs.render.GeckoPlayerModel;
+import com.leecrafts.thingamabobs.render.GeckoPlayerRenderer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.renderer.GeoRenderer;
 
 import java.util.List;
 
@@ -70,6 +82,17 @@ public class ModEvents {
                 ItemStack offhandItem1 = offhandItem.copy();
                 offhandItem.shrink(offhandItem.getCount());
                 player.addItem(offhandItem1);
+            }
+        }
+
+        @SubscribeEvent
+        public static void joinLevel(EntityJoinLevelEvent event) {
+            if (event.getEntity() instanceof Player player) {
+                System.out.println("has capability: " + player.getCapability(ModCapabilities.PLAYER_CAPABILITY).isPresent());
+                player.getCapability(ModCapabilities.PLAYER_CAPABILITY).ifPresent(iPlayerCap -> {
+                    PlayerCap playerCap = (PlayerCap) iPlayerCap;
+                    playerCap.addedToWorld(event);
+                });
             }
         }
 
@@ -198,10 +221,41 @@ public class ModEvents {
 //            }
 //        }
 
+        @SubscribeEvent
+        public static void renderLivingEvent(RenderPlayerEvent event) {
+            Player player = event.getEntity();
+            if (player != null) {
+                player.getCapability(ModCapabilities.PLAYER_CAPABILITY).ifPresent(iPlayerCap -> {
+                    PlayerCap playerCap = (PlayerCap) iPlayerCap;
+                    GeckoPlayer geckoPlayer = playerCap.getGeckoPlayer();
+                    if (geckoPlayer != null) {
+                        GeckoPlayerModel geckoPlayerModel = geckoPlayer.getModel();
+                        GeckoPlayerRenderer geckoPlayerRenderer = geckoPlayer.getRenderer();
+                        System.out.println("geckoPlayerModel is here: " + (geckoPlayerModel != null));
+                        System.out.println("geckoPlayerRenderer is here: " + (geckoPlayerRenderer != null));
+                        if (geckoPlayerModel != null && geckoPlayerRenderer != null) {
+                            System.out.println("oh, that's dope!");
+                            event.setCanceled(true);
+                            if (event.isCanceled()) {
+//                                geckoPlayerRenderer.defaultRender(event.getPoseStack(), geckoPlayer, event.getMultiBufferSource(), null, null, player.getYRot(), event.getPartialTick(), event.getPackedLight());
+                                geckoPlayerRenderer.render((AbstractClientPlayer) player, player.getYRot(), event.getPartialTick(), event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), geckoPlayer);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
     }
 
-//    @Mod.EventBusSubscriber(modid = ThingamabobsAndDoohickeys.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
-//    public static class ModEventBusEvents {
-//    }
+    @Mod.EventBusSubscriber(modid = ThingamabobsAndDoohickeys.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+    public static class ClientModEvents {
+
+        @SubscribeEvent
+        public static void onAddLayers(EntityRenderersEvent.AddLayers event) {
+            GeckoPlayer.initRenderer();
+        }
+
+    }
 
 }

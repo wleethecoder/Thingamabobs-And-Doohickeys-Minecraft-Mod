@@ -2,6 +2,7 @@ package com.leecrafts.thingamabobs;
 
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.packet.PacketHandler;
+import com.leecrafts.thingamabobs.sound.ModSounds;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.BlockItem;
@@ -49,6 +50,7 @@ public class ThingamabobsAndDoohickeys
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ModItems.register(modEventBus);
+        ModSounds.register(modEventBus);
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
