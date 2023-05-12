@@ -25,10 +25,14 @@ public class PlayerCapProvider implements ICapabilitySerializable<CompoundTag> {
         CompoundTag nbt = new CompoundTag();
         if (ModCapabilities.PLAYER_CAPABILITY == null) return nbt;
         nbt.putInt("mallet_charge", playerCap.malletCharge);
-        nbt.putInt("mallet_equip_animation", playerCap.malletEquipAnim);
-        nbt.putInt("mallet_swing_animation", playerCap.malletSwingAnim);
-        nbt.putInt("mallet_pickup_animation", playerCap.malletPickupAnim);
+        nbt.putInt("first_person_mallet_charge_offset", playerCap.firstPersonMalletChargeOffset);
+        nbt.putInt("first_person_mallet_equip_animation", playerCap.firstPersonMalletEquipAnim);
+        nbt.putInt("first_person_mallet_swing_animation", playerCap.firstPersonMalletSwingAnim);
+        nbt.putInt("first_person_mallet_pickup_animation", playerCap.firstPersonMalletPickupAnim);
         nbt.putBoolean("was_holding_mallet", playerCap.wasHoldingMallet);
+        nbt.putBoolean("third_person_mallet_animation_was_reset", playerCap.thirdPersonMalletAnimWasReset);
+        nbt.putInt("third_person_mallet_swing_animation", playerCap.thirdPersonMalletSwingAnim);
+        nbt.putBoolean("third_person_mallet_was_swinging", playerCap.thirdPersonMalletWasSwinging);
         return nbt;
     }
 
@@ -36,10 +40,14 @@ public class PlayerCapProvider implements ICapabilitySerializable<CompoundTag> {
     public void deserializeNBT(CompoundTag nbt) {
         if (ModCapabilities.PLAYER_CAPABILITY != null) {
             playerCap.malletCharge = nbt.getInt("mallet_charge");
-            playerCap.malletEquipAnim = nbt.getInt("mallet_equip_animation");
-            playerCap.malletSwingAnim = nbt.getInt("mallet_swing_animation");
-            playerCap.malletPickupAnim = nbt.getInt("mallet_pickup_animation");
+            playerCap.firstPersonMalletChargeOffset = nbt.getInt("first_person_mallet_charge_offset");
+            playerCap.firstPersonMalletEquipAnim = nbt.getInt("first_person_mallet_equip_animation");
+            playerCap.firstPersonMalletSwingAnim = nbt.getInt("first_person_mallet_swing_animation");
+            playerCap.firstPersonMalletPickupAnim = nbt.getInt("first_person_mallet_pickup_animation");
             playerCap.wasHoldingMallet = nbt.getBoolean("was_holding_mallet");
+            playerCap.thirdPersonMalletAnimWasReset = nbt.getBoolean("third_person_mallet_animation_was_reset");
+            playerCap.thirdPersonMalletSwingAnim = nbt.getInt("third_person_mallet_swing_animation");
+            playerCap.thirdPersonMalletWasSwinging = nbt.getBoolean("third_person_mallet_was_swinging");
         }
     }
 

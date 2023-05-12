@@ -53,6 +53,10 @@ minecraft {
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             property 'forge.enabledGameTestNamespaces', 'thingamabobs'
 
+            //You have to set mixin propert if you want to run playerAnimator in development environment.
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+
             mods {
                 thingamabobs {
                     source sourceSets.main
@@ -73,6 +77,9 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             property 'forge.enabledGameTestNamespaces', 'thingamabobs'
+
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             mods {
                 thingamabobs {
@@ -133,6 +140,11 @@ repositories {
 
     maven { url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
 
+    maven {
+        name "KosmX's maven"
+        url 'https://maven.kosmx.dev/'
+    }
+
 }
 
 dependencies {
@@ -152,6 +164,9 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
     implementation fg.deobf('software.bernie.geckolib:geckolib-forge-1.19.4:4.1.3')
+
+    //If you don't want to include the library in your jar, remove the include word
+    implementation fg.deobf("dev.kosmx.player-anim:player-animation-lib-forge:1.0.2+1.19.4")
 
 }
 

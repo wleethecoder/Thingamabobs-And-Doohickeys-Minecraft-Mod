@@ -1,36 +1,31 @@
 package com.leecrafts.thingamabobs.capability.player;
 
-import com.leecrafts.thingamabobs.render.GeckoPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-
 public class PlayerCap implements IPlayerCap {
 
     public int malletCharge;
-    public int malletEquipAnim;
-    public int malletSwingAnim;
-    public int malletPickupAnim;
+    public int firstPersonMalletChargeOffset;
+    public int firstPersonMalletEquipAnim;
+    public int firstPersonMalletSwingAnim;
+    public int firstPersonMalletPickupAnim;
     public boolean wasHoldingMallet;
-    private GeckoPlayer geckoPlayer;
+    public boolean thirdPersonMalletAnimWasReset;
+    public int thirdPersonMalletSwingAnim;
+    public boolean thirdPersonMalletWasSwinging;
 
     public PlayerCap() {
         this.malletCharge = 0;
-        this.malletEquipAnim = 0;
-        this.malletSwingAnim = -1;
-        this.malletPickupAnim = 0;
+        this.firstPersonMalletChargeOffset = 0;
+        this.firstPersonMalletEquipAnim = 0;
         this.wasHoldingMallet = false;
+        this.thirdPersonMalletAnimWasReset = false;
+        this.thirdPersonMalletWasSwinging = false;
+        this.resetAnim();
     }
 
-    public void addedToWorld(EntityJoinLevelEvent event) {
-        if (event.getLevel().isClientSide) {
-            System.out.println("jimmy eat world!");
-            Player player = (Player) event.getEntity();
-            this.geckoPlayer = new GeckoPlayer(player);
-        }
-    }
-
-    public GeckoPlayer getGeckoPlayer() {
-        return this.geckoPlayer;
+    public void resetAnim() {
+        this.firstPersonMalletSwingAnim = -1;
+        this.firstPersonMalletPickupAnim = 0;
+        this.thirdPersonMalletSwingAnim = -1;
     }
 
 }
