@@ -1,6 +1,6 @@
 package com.leecrafts.thingamabobs.capability.player;
 
-public class PlayerCap implements IPlayerCap {
+public class PlayerMalletCap implements IPlayerMalletCap {
 
     public int malletCharge;
     public int firstPersonMalletChargeOffset;
@@ -8,23 +8,27 @@ public class PlayerCap implements IPlayerCap {
     public int firstPersonMalletSwingAnim;
     public int firstPersonMalletPickupAnim;
     public boolean wasHoldingMallet;
-    public boolean thirdPersonMalletAnimWasReset;
+    public boolean thirdPersonMalletAnimWasIdle;
     public int thirdPersonMalletSwingAnim;
-    public boolean thirdPersonMalletWasSwinging;
+    public boolean thirdPersonMalletWasCharging;
+    public boolean thirdPersonMalletAnimWasStopped;
+    public boolean thirdPersonMalletAnimWasPaused;
 
-    public PlayerCap() {
+    public PlayerMalletCap() {
         this.malletCharge = 0;
         this.firstPersonMalletChargeOffset = 0;
-        this.firstPersonMalletEquipAnim = 0;
-        this.wasHoldingMallet = false;
-        this.thirdPersonMalletAnimWasReset = false;
-        this.thirdPersonMalletWasSwinging = false;
+        this.thirdPersonMalletWasCharging = false;
+        this.thirdPersonMalletAnimWasStopped = false;
+        this.thirdPersonMalletAnimWasPaused = false;
         this.resetAnim();
     }
 
     public void resetAnim() {
+        this.wasHoldingMallet = false;
+        this.firstPersonMalletEquipAnim = 0;
         this.firstPersonMalletSwingAnim = -1;
         this.firstPersonMalletPickupAnim = 0;
+        this.thirdPersonMalletAnimWasIdle = false;
         this.thirdPersonMalletSwingAnim = -1;
     }
 

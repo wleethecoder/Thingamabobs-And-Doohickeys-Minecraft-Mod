@@ -1,6 +1,6 @@
 package com.leecrafts.thingamabobs.capability.player;
 
-public interface IPlayerCap {
+public interface IPlayerMalletCap {
 
     void resetAnim();
 

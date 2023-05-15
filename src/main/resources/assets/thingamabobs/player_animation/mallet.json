@@ -1,8 +1,40 @@
 {
 	"format_version": "1.8.0",
 	"animations": {
+		"mallet_idle": {
+			"loop": true,
+			"animation_length": 4,
+			"bones": {
+				"right_item": {
+					"rotation": {
+						"0.0": {
+							"vector": [8.4985, -32.642, -84.5393]
+						}
+					},
+					"position": {
+						"0.0": {
+							"vector": [1, 1.5, 2.2]
+						}
+					}
+				},
+				"right_arm": {
+					"rotation": {
+						"0.0": {
+							"vector": [-33.55154, 1.03674, -16.62513]
+						}
+					}
+				},
+				"left_arm": {
+					"rotation": {
+						"0.0": {
+							"vector": [-30.86245, 8.26577, 16.58374]
+						}
+					}
+				}
+			}
+		},
 		"mallet_charge": {
-			"animation_length": 1.85,
+			"animation_length": 2.25,
 			"bones": {
 				"right_item": {
 					"rotation": {
@@ -10,16 +42,16 @@
 							"vector": [8.4985, -32.642, -84.5393]
 						},
 						"1.75": {
-							"vector": [0, -15.51865, 0],
+							"vector": [-3, -15.51865, 2],
 							"easing": "easeInOutCubic"
 						}
 					},
 					"position": {
 						"0.0": {
-							"vector": [5, 3, 2.2]
+							"vector": [1, 1.5, 2.2]
 						},
 						"1.75": {
-							"vector": [0, -10, -2],
+							"vector": [-3, -10, -2],
 							"easing": "easeInOutCubic"
 						}
 					}
@@ -108,20 +140,20 @@
 			}
 		},
 		"mallet_swing": {
-			"animation_length": 0.65,
+			"animation_length": 0.85,
 			"bones": {
 				"right_item": {
 					"rotation": {
 						"0.0": {
-							"vector": [0, 0, -15.51865]
+							"vector": [-3, -15.51865, 2]
 						},
 						"0.15": {
-							"vector": [-45, 0, -15.51865]
+							"vector": [-37, -13, -17]
 						}
 					},
 					"position": {
 						"0.0": {
-							"vector": [0, -10, -2]
+							"vector": [2, -10, -7]
 						}
 					}
 				},

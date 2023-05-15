@@ -13,17 +13,20 @@ import static com.leecrafts.thingamabobs.item.custom.ComicallyLargeMalletItem.CH
 
 public class ServerboundComicallyLargeMalletAttackPacket {
 
+    public final int strength;
     public final String targetsString;
 
-    public ServerboundComicallyLargeMalletAttackPacket(String targetsString) {
+    public ServerboundComicallyLargeMalletAttackPacket(int strength, String targetsString) {
+        this.strength = strength;
         this.targetsString = targetsString;
     }
 
     public ServerboundComicallyLargeMalletAttackPacket(FriendlyByteBuf buffer) {
-        this(buffer.readUtf());
+        this(buffer.readInt(), buffer.readUtf());
     }
 
     public void encode(FriendlyByteBuf buffer) {
+        buffer.writeInt(this.strength);
         buffer.writeUtf(this.targetsString);
     }
 
@@ -35,7 +38,7 @@ public class ServerboundComicallyLargeMalletAttackPacket {
                 for (String str : list) {
                     Entity entity = sender.level.getEntity(Integer.parseInt(str));
                     if (entity != null) {
-                        sender.attackStrengthTicker = CHARGE_TIME;
+                        sender.attackStrengthTicker = this.strength;
                         sender.attack(entity);
                     }
                 }

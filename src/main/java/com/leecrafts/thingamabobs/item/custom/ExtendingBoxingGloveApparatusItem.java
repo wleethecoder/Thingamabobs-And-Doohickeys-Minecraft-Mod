@@ -25,6 +25,7 @@ public class ExtendingBoxingGloveApparatusItem extends Item implements Vanishabl
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level pLevel, @NotNull Player pPlayer, @NotNull InteractionHand pUsedHand) {
         ItemStack itemStack = pPlayer.getItemInHand(pUsedHand);
         if (isCharged(itemStack)) {
+            System.out.println("get walloped!");
             shootProjectile(pLevel, pPlayer, pUsedHand, itemStack);
             setCharged(itemStack, false);
             return InteractionResultHolder.consume(itemStack);
@@ -36,6 +37,7 @@ public class ExtendingBoxingGloveApparatusItem extends Item implements Vanishabl
     @Override
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull LivingEntity pLivingEntity, int pTimeCharged) {
         if (pTimeCharged > MAX_CHARGE_DURATION && !isCharged(pStack)) {
+            System.out.println("punchy glove is now charged");
             setCharged(pStack, true);
         }
     }

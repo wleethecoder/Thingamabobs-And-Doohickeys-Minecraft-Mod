@@ -2,29 +2,35 @@ package com.leecrafts.thingamabobs.event;
 
 import com.leecrafts.thingamabobs.ThingamabobsAndDoohickeys;
 import com.leecrafts.thingamabobs.capability.ModCapabilities;
-import com.leecrafts.thingamabobs.capability.player.IPlayerCap;
-import com.leecrafts.thingamabobs.capability.player.PlayerCap;
-import com.leecrafts.thingamabobs.capability.player.PlayerCapProvider;
+import com.leecrafts.thingamabobs.capability.player.IPlayerMalletCap;
+import com.leecrafts.thingamabobs.capability.player.PlayerMalletCap;
+import com.leecrafts.thingamabobs.capability.player.PlayerMalletCapProvider;
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.packet.PacketHandler;
+import com.leecrafts.thingamabobs.packet.ServerboundComicallyLargeMalletAnimationPacket;
 import com.leecrafts.thingamabobs.packet.ServerboundComicallyLargeMalletAttackPacket;
 import dev.kosmx.playerAnim.api.layered.IAnimation;
-import dev.kosmx.playerAnim.api.layered.KeyframeAnimationPlayer;
 import dev.kosmx.playerAnim.api.layered.ModifierLayer;
-import dev.kosmx.playerAnim.api.layered.modifier.AbstractFadeModifier;
+import dev.kosmx.playerAnim.api.layered.modifier.MirrorModifier;
 import dev.kosmx.playerAnim.api.layered.modifier.SpeedModifier;
+import dev.kosmx.playerAnim.core.data.AnimationBinary;
 import dev.kosmx.playerAnim.core.data.KeyframeAnimation;
-import dev.kosmx.playerAnim.core.util.Ease;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationRegistry;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
@@ -36,6 +42,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import static com.leecrafts.thingamabobs.item.custom.ComicallyLargeMalletItem.*;
@@ -44,27 +51,6 @@ public class ModEvents {
 
     @Mod.EventBusSubscriber(modid = ThingamabobsAndDoohickeys.MODID)
     public static class ForgeEvents {
-
-        @SubscribeEvent
-        public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-            event.register(IPlayerCap.class);
-        }
-
-        @SubscribeEvent
-        public static void attachCapabilitiesEventPlayer(AttachCapabilitiesEvent<Entity> event) {
-            if (event.getObject() instanceof LocalPlayer) {
-                PlayerCapProvider playerCapProvider = new PlayerCapProvider();
-                event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "mallet_charge"), playerCapProvider);
-                event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "first_person_mallet_charge_offset"), playerCapProvider);
-                event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "first_person_mallet_equip_animation"), playerCapProvider);
-                event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "first_person_mallet_swing_animation"), playerCapProvider);
-                event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "first_person_mallet_pickup_animation"), playerCapProvider);
-                event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "was_holding_mallet"), playerCapProvider);
-                event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "third_person_mallet_animation_was_reset"), playerCapProvider);
-                event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "third_person_mallet_swing_animation"), playerCapProvider);
-                event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "third_person_mallet_was_swinging"), playerCapProvider);
-            }
-        }
 
         @SubscribeEvent
         public static void damageTest(LivingDamageEvent event) {
@@ -92,138 +78,178 @@ public class ModEvents {
     public static class ClientForgeEvents {
 
         public static final ResourceLocation ANIMATION = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "animation");
+        public static final ResourceLocation MALLET_IDLE = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "mallet_idle");
         public static final ResourceLocation MALLET_CHARGE = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "mallet_charge");
         public static final ResourceLocation MALLET_SWING = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "mallet_swing");
-        public static final SpeedModifier PAUSE = new SpeedModifier(0.0f);
-        public static final AbstractFadeModifier FADE = AbstractFadeModifier.standardFadeIn(5, Ease.OUTSINE);
+        public static final ByteBuf EMPTY_BYTES = Unpooled.wrappedBuffer(ByteBuffer.allocate(0));
+        public static final MirrorModifier MIRROR = new MirrorModifier();
 
-        // TODO left hand
-        // TODO fade transition
+        @SubscribeEvent
+        public static void registerClientCapabilities(RegisterCapabilitiesEvent event) {
+            event.register(IPlayerMalletCap.class);
+        }
+
+        @SubscribeEvent
+        public static void attachClientCapabilitiesEventPlayer(AttachCapabilitiesEvent<Entity> event) {
+            if (event.getObject() instanceof LocalPlayer localPlayer) {
+                if (!localPlayer.getCapability(ModCapabilities.PLAYER_MALLET_CAPABILITY).isPresent()) {
+                    event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "player_mallet"), new PlayerMalletCapProvider());
+                }
+            }
+        }
+
+        // This event listener handles the attack and (1st and 3rd person) animation logic of the comically large mallet weapon.
+        // The player must hold left click to charge the mallet, and then release to swing it down.
         @SubscribeEvent
         public static void clientTick(TickEvent.ClientTickEvent event) {
             if (event.phase == TickEvent.Phase.START) {
                 LocalPlayer localPlayer = Minecraft.getInstance().player;
                 if (localPlayer != null) {
-                    // case 1, player is not pressing left click: charge resets
-                    // case 2, player is not holding mallet: charge resets
-                    // case 3, player is holding mallet and is pressing left click: charge increments
-                    // case 4, charge >= charge limit and player keeps pressing left click while holding mallet: charge no longer increments
-                    // case 5, charge >= charge limit and player lets go of left click while holding mallet: player swings down mallet; charge is reset
-
-                    localPlayer.getCapability(ModCapabilities.PLAYER_CAPABILITY).ifPresent(iPlayerCap -> {
-                        PlayerCap playerCap = (PlayerCap) iPlayerCap;
+                    localPlayer.getCapability(ModCapabilities.PLAYER_MALLET_CAPABILITY).ifPresent(iPlayerCap -> {
+                        PlayerMalletCap playerMalletCap = (PlayerMalletCap) iPlayerCap;
                         boolean leftMouse = Minecraft.getInstance().mouseHandler.isLeftPressed();
                         boolean holdingMallet = localPlayer.getMainHandItem().getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get();
+                        boolean mirrored = Minecraft.getInstance().options.mainHand().get() == HumanoidArm.LEFT;
 
                         if (!holdingMallet || !leftMouse) {
                             if (!leftMouse) {
-                                if (playerCap.malletCharge >= CHARGE_TIME) {
-                                    // TODO test animations on server?
-                                    // TODO do we need this line?
-//                                    localPlayer.swing(InteractionHand.MAIN_HAND);
+                                // The mallet, when at least 50% charged, will deal damage (0 damage otherwise).
+                                // If the mallet is 100% charged, it deals damage to all entities in an area between the player and its reach distance.
+                                if (playerMalletCap.malletCharge > CHARGE_TIME / 2) {
+                                    // called so that the player will face where it attacks
+                                    localPlayer.swing(InteractionHand.MAIN_HAND);
 
-                                    double radius = localPlayer.getEntityReach() / 2;
-                                    StringBuilder listString = getHitEntities(localPlayer, radius);
-                                    PacketHandler.INSTANCE.sendToServer(new ServerboundComicallyLargeMalletAttackPacket(listString.toString()));
-                                    playerCap.firstPersonMalletSwingAnim = 0;
+                                    if (playerMalletCap.malletCharge >= CHARGE_TIME) {
+                                        double radius = localPlayer.getEntityReach() / 2;
+                                        StringBuilder listString = getHitEntities(localPlayer, radius);
+                                        PacketHandler.INSTANCE.sendToServer(
+                                                new ServerboundComicallyLargeMalletAttackPacket(playerMalletCap.malletCharge, listString.toString()));
+                                    }
+                                    else {
+                                        HitResult hitResult = Minecraft.getInstance().hitResult;
+                                        if (hitResult != null && hitResult.getType() == HitResult.Type.ENTITY) {
+                                            int entityId = ((EntityHitResult) hitResult).getEntity().getId();
+                                            PacketHandler.INSTANCE.sendToServer(
+                                                    new ServerboundComicallyLargeMalletAttackPacket(playerMalletCap.malletCharge, String.valueOf(entityId)));
+                                        }
+                                    }
 
+                                    // first person swing animation
+                                    playerMalletCap.firstPersonMalletSwingAnim = 0;
+
+                                    // third person swing animation
                                     var animation = getAnimation(localPlayer);
                                     KeyframeAnimation keyframeAnimation = PlayerAnimationRegistry.getAnimation(MALLET_SWING);
                                     if (animation != null && keyframeAnimation != null) {
                                         KeyframeAnimation modifiedAnimation = setEnabledHeadMovement(keyframeAnimation, false, true);
-                                        animation.setAnimation(new KeyframeAnimationPlayer(modifiedAnimation));
-                                        continueAnimation(animation, 1.0f);
-                                        playerCap.thirdPersonMalletSwingAnim = 0;
+                                        ByteBuf animBytes = convertToBytes(modifiedAnimation);
+                                        PacketHandler.INSTANCE.sendToServer(
+                                                new ServerboundComicallyLargeMalletAnimationPacket(1.0f, mirrored, false, animBytes));
+                                        playerMalletCap.thirdPersonMalletSwingAnim = 0;
                                     }
                                 }
                             }
 
+                            // if player switches weapon, the mallet animation no longer applies
                             if (!holdingMallet) {
-                                playerCap.firstPersonMalletEquipAnim = 0;
-                                playerCap.wasHoldingMallet = false;
-                                playerCap.thirdPersonMalletAnimWasReset = false;
-                                playerCap.resetAnim();
+                                playerMalletCap.resetAnim();
 
-                                // if player switches weapon, the mallet animation no longer applies
-                                var animation = getAnimation(localPlayer);
-                                if (animation != null) {
-                                    animation.setAnimation(null);
+                                if (!playerMalletCap.thirdPersonMalletAnimWasStopped) {
+                                    var animation = getAnimation(localPlayer);
+                                    if (animation != null) {
+                                        PacketHandler.INSTANCE.sendToServer(
+                                                new ServerboundComicallyLargeMalletAnimationPacket(-1.0f, mirrored, false, EMPTY_BYTES));
+                                    }
+                                    playerMalletCap.thirdPersonMalletAnimWasStopped = true;
                                 }
                             }
-                            playerCap.malletCharge = 0;
-                            playerCap.firstPersonMalletChargeOffset = 0;
-                            playerCap.thirdPersonMalletWasSwinging = false;
+                            playerMalletCap.malletCharge = 0;
+                            playerMalletCap.firstPersonMalletChargeOffset = 0;
+                            playerMalletCap.thirdPersonMalletWasCharging = false;
+                            playerMalletCap.thirdPersonMalletAnimWasPaused = false;
 
-                            // When the charge is 0, the attack indicator will not appear
                             if (holdingMallet) {
+                                // When the charge is 0, the attack indicator will not appear
                                 localPlayer.attackStrengthTicker = CHARGE_TIME;
 
+                                // third person idle animation
                                 var animation = getAnimation(localPlayer);
-                                KeyframeAnimation keyframeAnimation = PlayerAnimationRegistry.getAnimation(MALLET_CHARGE);
+                                KeyframeAnimation keyframeAnimation = PlayerAnimationRegistry.getAnimation(MALLET_IDLE);
                                 if (animation != null && keyframeAnimation != null) {
 
-                                    if ((animation.getAnimation() == null || !playerCap.thirdPersonMalletAnimWasReset) &&
-                                            playerCap.thirdPersonMalletSwingAnim == -1) {
+                                    if ((animation.getAnimation() == null || !playerMalletCap.thirdPersonMalletAnimWasIdle) &&
+                                            playerMalletCap.thirdPersonMalletSwingAnim == -1) {
 
                                         KeyframeAnimation modifiedAnimation = setEnabledLegMovement(keyframeAnimation, false);
                                         KeyframeAnimation modifiedAnimation1 = setEnabledHeadMovement(modifiedAnimation, false, false);
 
-//                                        animation.replaceAnimationWithFade(FADE, new KeyframeAnimationPlayer(modifiedAnimation));
-                                        animation.setAnimation(new KeyframeAnimationPlayer(modifiedAnimation1));
-                                        pauseAnimation(animation);
-                                        playerCap.thirdPersonMalletAnimWasReset = true;
+                                        ByteBuf animBytes = convertToBytes(modifiedAnimation1);
+                                        PacketHandler.INSTANCE.sendToServer(
+                                                new ServerboundComicallyLargeMalletAnimationPacket(1.0f, mirrored, true, animBytes));
+                                        playerMalletCap.thirdPersonMalletAnimWasIdle = true;
                                     }
                                 }
                             }
                         }
                         else {
-                            if (playerCap.malletCharge < CHARGE_TIME && !playerCap.thirdPersonMalletWasSwinging) {
-                                playerCap.thirdPersonMalletAnimWasReset = false;
+                            // third person charge animation
+                            if (playerMalletCap.malletCharge < CHARGE_TIME && !playerMalletCap.thirdPersonMalletWasCharging) {
+                                playerMalletCap.thirdPersonMalletAnimWasIdle = false;
                                 var animation = getAnimation(localPlayer);
                                 if (animation != null) {
-                                    if (playerCap.thirdPersonMalletSwingAnim == -1) {
+                                    if (playerMalletCap.thirdPersonMalletSwingAnim == -1) {
                                         KeyframeAnimation keyframeAnimation = PlayerAnimationRegistry.getAnimation(MALLET_CHARGE);
                                         if (keyframeAnimation != null) {
                                             KeyframeAnimation modifiedAnimation = setEnabledLegMovement(keyframeAnimation, false);
                                             KeyframeAnimation modifiedAnimation1 = setEnabledHeadMovement(modifiedAnimation, false, false);
-                                            animation.setAnimation(new KeyframeAnimationPlayer(modifiedAnimation1));
-                                            continueAnimation(animation, 1.0f * CHARGE_TIME / (CHARGE_TIME - playerCap.malletCharge));
-                                            playerCap.thirdPersonMalletWasSwinging = true;
+                                            ByteBuf animBytes = convertToBytes(modifiedAnimation1);
+                                            PacketHandler.INSTANCE.sendToServer(
+                                                    new ServerboundComicallyLargeMalletAnimationPacket(
+                                                            1.0f * CHARGE_TIME / (CHARGE_TIME - playerMalletCap.malletCharge),
+                                                            mirrored, true, animBytes
+                                                    )
+                                            );
+                                            playerMalletCap.thirdPersonMalletWasCharging = true;
                                         }
                                     }
                                 }
                             }
-                            else if (playerCap.malletCharge == CHARGE_TIME) {
+                            else if (playerMalletCap.malletCharge == CHARGE_TIME && !playerMalletCap.thirdPersonMalletAnimWasPaused) {
                                 var animation = getAnimation(localPlayer);
                                 if (animation != null) {
-                                    pauseAnimation(animation);
+                                    PacketHandler.INSTANCE.sendToServer(
+                                            new ServerboundComicallyLargeMalletAnimationPacket(0.0f, mirrored, false, EMPTY_BYTES));
                                 }
+                                playerMalletCap.thirdPersonMalletAnimWasPaused = true;
                             }
-                            playerCap.malletCharge = Math.min(CHARGE_TIME, playerCap.malletCharge + 1);
-                            localPlayer.attackStrengthTicker = playerCap.malletCharge;
+
+                            playerMalletCap.malletCharge = Math.min(CHARGE_TIME, playerMalletCap.malletCharge + 1);
+                            localPlayer.attackStrengthTicker = playerMalletCap.malletCharge;
                         }
 
                         if (holdingMallet) {
-                            if (playerCap.thirdPersonMalletSwingAnim > -1) {
-                                playerCap.thirdPersonMalletSwingAnim++;
-                                if (playerCap.thirdPersonMalletSwingAnim >= 13) {
-                                    playerCap.thirdPersonMalletSwingAnim = -1;
+                            playerMalletCap.thirdPersonMalletAnimWasStopped = false;
+                            if (playerMalletCap.thirdPersonMalletSwingAnim > -1) {
+                                playerMalletCap.thirdPersonMalletSwingAnim++;
+                                if (playerMalletCap.thirdPersonMalletSwingAnim >= 13) {
+                                    playerMalletCap.thirdPersonMalletSwingAnim = -1;
                                 }
                             }
-                            // Update first person animation ticks
-                            if (playerCap.firstPersonMalletEquipAnim < EQUIP_TIME) {
-                                playerCap.firstPersonMalletEquipAnim++;
+
+                            // update first person animation ticks
+                            if (playerMalletCap.firstPersonMalletEquipAnim < EQUIP_TIME) {
+                                playerMalletCap.firstPersonMalletEquipAnim++;
                             }
-                            else if (playerCap.firstPersonMalletSwingAnim > -1) {
-                                if (playerCap.firstPersonMalletSwingAnim < SWING_TIME + 10) {
-                                    playerCap.firstPersonMalletSwingAnim++;
+                            else if (playerMalletCap.firstPersonMalletSwingAnim > -1) {
+                                if (playerMalletCap.firstPersonMalletSwingAnim < SWING_TIME + 10) {
+                                    playerMalletCap.firstPersonMalletSwingAnim++;
                                 }
-                                else if (playerCap.firstPersonMalletPickupAnim < PICKUP_TIME) {
-                                    playerCap.firstPersonMalletPickupAnim++;
+                                else if (playerMalletCap.firstPersonMalletPickupAnim < PICKUP_TIME) {
+                                    playerMalletCap.firstPersonMalletPickupAnim++;
                                 }
                                 else {
-                                    playerCap.firstPersonMalletSwingAnim = -1;
-                                    playerCap.firstPersonMalletPickupAnim = 0;
+                                    playerMalletCap.firstPersonMalletSwingAnim = -1;
+                                    playerMalletCap.firstPersonMalletPickupAnim = 0;
                                 }
                             }
                         }
@@ -243,25 +269,25 @@ public class ModEvents {
             return listString;
         }
 
-        private static ModifierLayer<IAnimation> getAnimation(LocalPlayer localPlayer) {
-            return (ModifierLayer<IAnimation>) PlayerAnimationAccess.getPlayerAssociatedData(localPlayer).get(ANIMATION);
+        private static ByteBuf convertToBytes(KeyframeAnimation keyframeAnimation) {
+            int numBytes = AnimationBinary.calculateSize(keyframeAnimation, AnimationBinary.getCurrentVersion());
+            ByteBuffer animBytes = ByteBuffer.allocate(numBytes);
+            animBytes = ByteBuffer.wrap(AnimationBinary.write(keyframeAnimation, animBytes).array());
+            return Unpooled.wrappedBuffer(animBytes);
         }
 
-        private static void pauseAnimation(ModifierLayer<IAnimation> animation) {
-            if (animation.size() > 0) {
-                animation.removeModifier(0);
-            }
-            animation.addModifierBefore(PAUSE);
+        public static ModifierLayer<IAnimation> getAnimation(AbstractClientPlayer abstractClientPlayer) {
+            return (ModifierLayer<IAnimation>) PlayerAnimationAccess.getPlayerAssociatedData(abstractClientPlayer).get(ANIMATION);
         }
 
-        private static void continueAnimation(ModifierLayer<IAnimation> animation, float speed) {
+        public static void setSpeed(ModifierLayer<IAnimation> animation, float speed) {
             if (animation.size() > 0) {
                 animation.removeModifier(0);
             }
             animation.addModifierBefore(new SpeedModifier(speed));
         }
 
-        private static KeyframeAnimation setEnabledLegMovement(KeyframeAnimation keyframeAnimation, boolean enabled) {
+        public static KeyframeAnimation setEnabledLegMovement(KeyframeAnimation keyframeAnimation, boolean enabled) {
             var builder = keyframeAnimation.mutableCopy();
             var leftLeg = builder.getPart("leftLeg");
             if (leftLeg != null) {
@@ -285,7 +311,7 @@ public class ModEvents {
             return builder.build();
         }
 
-        private static KeyframeAnimation setEnabledHeadMovement(KeyframeAnimation keyframeAnimation, boolean enabled, boolean enableHeadPitch) {
+        public static KeyframeAnimation setEnabledHeadMovement(KeyframeAnimation keyframeAnimation, boolean enabled, boolean enableHeadPitch) {
             var builder = keyframeAnimation.mutableCopy();
             var head = builder.getPart("head");
             if (head != null) {

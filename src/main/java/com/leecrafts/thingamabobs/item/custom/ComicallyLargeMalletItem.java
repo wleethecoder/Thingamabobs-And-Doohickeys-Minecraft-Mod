@@ -3,7 +3,7 @@ package com.leecrafts.thingamabobs.item.custom;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.leecrafts.thingamabobs.capability.ModCapabilities;
-import com.leecrafts.thingamabobs.capability.player.PlayerCap;
+import com.leecrafts.thingamabobs.capability.player.PlayerMalletCap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.player.LocalPlayer;
@@ -118,30 +118,30 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
             @Override
             public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
                 if (player.getOffhandItem() == itemInHand) return false;
-                player.getCapability(ModCapabilities.PLAYER_CAPABILITY).ifPresent(iPlayerCap -> {
-                    PlayerCap playerCap = (PlayerCap) iPlayerCap;
+                player.getCapability(ModCapabilities.PLAYER_MALLET_CAPABILITY).ifPresent(iPlayerCap -> {
+                    PlayerMalletCap playerMalletCap = (PlayerMalletCap) iPlayerCap;
                     int multiplier = arm == HumanoidArm.RIGHT ? 1 : -1;
-                    if (playerCap.wasHoldingMallet) {
-                        if (playerCap.firstPersonMalletEquipAnim < EQUIP_TIME) {
-                            double equipProgress = Math.min(1.0, (playerCap.firstPersonMalletEquipAnim + partialTick) / EQUIP_TIME);
+                    if (playerMalletCap.wasHoldingMallet) {
+                        if (playerMalletCap.firstPersonMalletEquipAnim < EQUIP_TIME) {
+                            double equipProgress = Math.min(1.0, (playerMalletCap.firstPersonMalletEquipAnim + partialTick) / EQUIP_TIME);
                             this.nextPosAndRot(EQUIP_X, EQUIP_Y, EQUIP_Z, IDLE_X, IDLE_Y, IDLE_Z, EQUIP_X_ROT, EQUIP_Z_ROT, IDLE_X_ROT, IDLE_Z_ROT, equipProgress, multiplier);
                         }
-                        else if (playerCap.firstPersonMalletSwingAnim == -1) {
-                            boolean progressing = playerCap.malletCharge > 0;
-                            double chargeProgress = Math.min(1.0, (playerCap.malletCharge + (progressing ? partialTick : 0) - playerCap.firstPersonMalletChargeOffset) / (CHARGE_TIME - playerCap.firstPersonMalletChargeOffset));
+                        else if (playerMalletCap.firstPersonMalletSwingAnim == -1) {
+                            boolean progressing = playerMalletCap.malletCharge > 0;
+                            double chargeProgress = Math.min(1.0, (playerMalletCap.malletCharge + (progressing ? partialTick : 0) - playerMalletCap.firstPersonMalletChargeOffset) / (CHARGE_TIME - playerMalletCap.firstPersonMalletChargeOffset));
                             this.nextPosAndRot(IDLE_X, IDLE_Y, IDLE_Z, CHARGE_X, CHARGE_Y, CHARGE_Z, IDLE_X_ROT, IDLE_Z_ROT, CHARGE_X_ROT, CHARGE_Z_ROT, chargeProgress, multiplier);
                         }
-                        else if (playerCap.firstPersonMalletSwingAnim < SWING_TIME + 10) {
-                            double swingProgress = Math.min(1.0, (playerCap.firstPersonMalletSwingAnim + partialTick) / SWING_TIME);
+                        else if (playerMalletCap.firstPersonMalletSwingAnim < SWING_TIME + 10) {
+                            double swingProgress = Math.min(1.0, (playerMalletCap.firstPersonMalletSwingAnim + partialTick) / SWING_TIME);
                             this.nextPosAndRot(CHARGE_X, CHARGE_Y, CHARGE_Z, SWING_X, SWING_Y, SWING_Z, CHARGE_X_ROT, CHARGE_Z_ROT, SWING_X_ROT, SWING_Z_ROT, swingProgress, multiplier);
                         }
-                        else if (playerCap.firstPersonMalletPickupAnim < PICKUP_TIME) {
-                            double pickupProgress = (playerCap.firstPersonMalletPickupAnim + partialTick) / PICKUP_TIME;
+                        else if (playerMalletCap.firstPersonMalletPickupAnim < PICKUP_TIME) {
+                            double pickupProgress = (playerMalletCap.firstPersonMalletPickupAnim + partialTick) / PICKUP_TIME;
                             this.nextPosAndRot(SWING_X, SWING_Y, SWING_Z, IDLE_X, IDLE_Y, IDLE_Z, SWING_X_ROT, SWING_Z_ROT, IDLE_X_ROT, IDLE_Z_ROT, pickupProgress, multiplier);
                         }
                         else {
                             // malletCharge may be > 0 if player tries to attack consecutively, so I try to animate that smoothly
-                            playerCap.firstPersonMalletChargeOffset = playerCap.malletCharge;
+                            playerMalletCap.firstPersonMalletChargeOffset = playerMalletCap.malletCharge;
                         }
                     }
                     else {
@@ -155,7 +155,7 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
                         zO = EQUIP_Z;
                         xRotO = EQUIP_X_ROT;
                         zRotO = EQUIP_Z_ROT * multiplier;
-                        playerCap.wasHoldingMallet = true;
+                        playerMalletCap.wasHoldingMallet = true;
                     }
                     poseStack.translate(
                             Mth.lerp(partialTick, xO, x),
