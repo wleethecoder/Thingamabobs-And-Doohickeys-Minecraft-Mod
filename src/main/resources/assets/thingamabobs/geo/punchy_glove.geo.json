@@ -1,0 +1,50 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.unknown",
+				"texture_width": 32,
+				"texture_height": 32,
+				"visible_bounds_width": 20,
+				"visible_bounds_height": 2.5,
+				"visible_bounds_offset": [0, 0.75, 0]
+			},
+			"bones": [
+				{
+					"name": "handle",
+					"pivot": [0, -2, 0],
+					"cubes": [
+						{"origin": [-1, -7, -1], "size": [2, 11, 2], "uv": [0, 19]}
+					]
+				},
+				{
+					"name": "box",
+					"pivot": [0, 0, 0],
+					"cubes": [
+						{"origin": [-3, 1, -2], "size": [6, 6, 5], "uv": [0, 0]},
+						{"origin": [-3, 1, -6], "size": [1, 6, 4], "uv": [8, 20]},
+						{"origin": [2, 1, -6], "size": [1, 6, 4], "uv": [8, 20]},
+						{"origin": [-2, 1, -6], "size": [4, 1, 4], "uv": [12, 15]},
+						{"origin": [-2, 6, -6], "size": [4, 1, 4], "uv": [12, 15]}
+					]
+				},
+				{
+					"name": "crank",
+					"pivot": [0, 4, -4],
+					"cubes": [
+						{"origin": [-3.01, 3.5, -4.5], "size": [6.02, 1, 1], "uv": [17, 0]}
+					]
+				},
+				{
+					"name": "glove",
+					"pivot": [0, 0, -1],
+					"cubes": [
+						{"origin": [-2, 2, -11], "size": [4, 4, 4], "uv": [0, 11]},
+						{"origin": [-1.5, 2.5, -7], "size": [3, 3, 3], "uv": [19, 8]}
+					]
+				}
+			]
+		}
+	]
+}

@@ -73,7 +73,6 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
     public ComicallyLargeMalletItem(Properties pProperties) {
         super(pProperties);
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        // TODO check if you need to subtract by 1
         builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Tool modifier", BASE_DAMAGE - 1, AttributeModifier.Operation.ADDITION));
         builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Tool modifier", BASE_SPEED - 4, AttributeModifier.Operation.ADDITION));
         this.defaultModifiers = builder.build();

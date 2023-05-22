@@ -44,7 +44,7 @@ public class ServerboundComicallyLargeMalletAttackPacket {
                 }
                 // TODO what about non-attackable entities?
                 if (list.length > 0) {
-                    sender.level.playSound(null, sender, ModSounds.COMICALLY_LARGE_MALLET_WHAM.get(), SoundSource.PLAYERS, 5.0f, (sender.getRandom().nextFloat() - sender.getRandom().nextFloat()) * 0.2F + 1.0F);
+                    sender.level.playSound(null, sender, ModSounds.COMICALLY_LARGE_MALLET_WHAM.get(), SoundSource.PLAYERS, 5.0f, (sender.getRandom().nextFloat() - sender.getRandom().nextFloat()) * 0.2f + 1.0f);
                 }
             }
         });

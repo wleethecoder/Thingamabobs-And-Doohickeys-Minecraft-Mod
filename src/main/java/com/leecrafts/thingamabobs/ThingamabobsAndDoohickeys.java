@@ -1,5 +1,7 @@
 package com.leecrafts.thingamabobs;
 
+import com.leecrafts.thingamabobs.entity.ModEntityTypes;
+import com.leecrafts.thingamabobs.entity.client.BoxingGloveRenderer;
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.packet.PacketHandler;
 import com.leecrafts.thingamabobs.sound.ModSounds;
@@ -7,6 +9,7 @@ import com.mojang.logging.LogUtils;
 import dev.kosmx.playerAnim.api.layered.ModifierLayer;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationFactory;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -54,6 +57,7 @@ public class ThingamabobsAndDoohickeys
 
         ModItems.register(modEventBus);
         ModSounds.register(modEventBus);
+        ModEntityTypes.register(modEventBus);
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
@@ -104,6 +108,8 @@ public class ThingamabobsAndDoohickeys
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+
+            EntityRenderers.register(ModEntityTypes.BOXING_GLOVE.get(), BoxingGloveRenderer::new);
 
             PlayerAnimationFactory.ANIMATION_DATA_FACTORY.registerFactory(new ResourceLocation(MODID, "animation"), 42, (player) -> new ModifierLayer<>());
         }

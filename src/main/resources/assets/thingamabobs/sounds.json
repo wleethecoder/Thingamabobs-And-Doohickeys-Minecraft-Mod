@@ -9,5 +9,15 @@
       "thingamabobs:mallet/wham5",
       "thingamabobs:mallet/wham6"
     ]
+  },
+  "item.punchy_glove.boing": {
+    "subtitle": "sounds.thingamabobs.item.punchy_glove.boing",
+    "sounds": [
+      "thingamabobs:punchy_glove/boing1",
+      "thingamabobs:punchy_glove/boing2",
+      "thingamabobs:punchy_glove/boing3",
+      "thingamabobs:punchy_glove/boing4",
+      "thingamabobs:punchy_glove/boing5"
+    ]
   }
 }

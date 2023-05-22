@@ -15,6 +15,8 @@ public class ModSounds {
 
     public static final RegistryObject<SoundEvent> COMICALLY_LARGE_MALLET_WHAM = registerSoundEvent("item.mallet.wham");
 
+    public static final RegistryObject<SoundEvent> SPRING_LOADED_BOXING_GLOVE_BOING = registerSoundEvent("item.punchy_glove.boing");
+
     public static RegistryObject<SoundEvent> registerSoundEvent(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, name)));
     }
