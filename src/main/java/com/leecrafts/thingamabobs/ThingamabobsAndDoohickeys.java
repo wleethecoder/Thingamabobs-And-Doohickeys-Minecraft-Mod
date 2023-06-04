@@ -1,5 +1,6 @@
 package com.leecrafts.thingamabobs;
 
+import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.entity.ModEntityTypes;
 import com.leecrafts.thingamabobs.entity.client.BoxingGloveRenderer;
 import com.leecrafts.thingamabobs.item.ModItems;
@@ -39,17 +40,6 @@ public class ThingamabobsAndDoohickeys
 {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "thingamabobs";
-    // Directly reference a slf4j logger
-    private static final Logger LOGGER = LogUtils.getLogger();
-    // Create a Deferred Register to hold Blocks which will all be registered under the "examplemod" namespace
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
-    // Create a Deferred Register to hold Items which will all be registered under the "examplemod" namespace
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
-
-    // Creates a new Block with the id "examplemod:example_block", combining the namespace and path
-    public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block", () -> new Block(BlockBehaviour.Properties.of(Material.STONE)));
-    // Creates a new BlockItem with the id "examplemod:example_block", combining the namespace and path
-    public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties()));
 
     public ThingamabobsAndDoohickeys()
     {
@@ -58,45 +48,24 @@ public class ThingamabobsAndDoohickeys
         ModItems.register(modEventBus);
         ModSounds.register(modEventBus);
         ModEntityTypes.register(modEventBus);
+        ModEnchantments.register(modEventBus);
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
-        // Register the Deferred Register to the mod event bus so blocks get registered
-        BLOCKS.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so items get registered
-        ITEMS.register(modEventBus);
-
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
-        // Register the item to a creative tab
-        modEventBus.addListener(this::addCreative);
+//        // Register the item to a creative tab
+//        modEventBus.addListener(this::addCreative);
     }
 
-    private void commonSetup(final FMLCommonSetupEvent event)
-    {
-        // Some common setup code
-        LOGGER.info("HELLO FROM COMMON SETUP");
-        LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
-
+    private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(PacketHandler::init);
-
     }
 
-    private void addCreative(CreativeModeTabEvent.BuildContents event)
-    {
-        if (event.getTab() == CreativeModeTabs.BUILDING_BLOCKS)
-            event.accept(EXAMPLE_BLOCK_ITEM);
-    }
-
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event)
-    {
-        // Do something when the server starts
-        LOGGER.info("HELLO from server starting");
-    }
+//    private void addCreative(CreativeModeTabEvent.BuildContents event) {
+//    }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -105,10 +74,6 @@ public class ThingamabobsAndDoohickeys
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event)
         {
-            // Some client setup code
-            LOGGER.info("HELLO FROM CLIENT SETUP");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-
             EntityRenderers.register(ModEntityTypes.BOXING_GLOVE.get(), BoxingGloveRenderer::new);
 
             PlayerAnimationFactory.ANIMATION_DATA_FACTORY.registerFactory(new ResourceLocation(MODID, "animation"), 42, (player) -> new ModifierLayer<>());

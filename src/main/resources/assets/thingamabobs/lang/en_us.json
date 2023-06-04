@@ -1,10 +1,14 @@
 {
   "sounds.thingamabobs.item.mallet.wham": "Comically large mallet whams",
   "sounds.thingamabobs.item.punchy_glove.boing": "Spring-loaded boxing glove boings",
+  "sounds.thingamabobs.item.punchy_glove.backfire": "Spring-loaded boxing glove backfires",
 
   "item.thingamabobs.mallet": "Comically Large Mallet",
   "item.thingamabobs.punchy_glove": "Spring-Loaded Boxing Glove",
   "item.thingamabobs.punchy_glove.charged": "(Charged)",
 
-  "entity.thingamabobs.punchy_glove_projectile": "Boxing Glove"
+  "entity.thingamabobs.punchy_glove_projectile": "Boxing Glove",
+
+  "enchantment.thingamabobs.boing": "Boing",
+  "enchantment.thingamabobs.sticky": "Sticky"
 }

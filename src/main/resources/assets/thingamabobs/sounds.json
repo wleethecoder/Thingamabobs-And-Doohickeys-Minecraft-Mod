@@ -19,5 +19,12 @@
       "thingamabobs:punchy_glove/boing4",
       "thingamabobs:punchy_glove/boing5"
     ]
+  },
+  "item.punchy_glove.backfire": {
+    "subtitle": "sounds.thingamabobs.item.punchy_glove.backfire",
+    "sounds": [
+      "thingamabobs:punchy_glove/backfire1",
+      "thingamabobs:punchy_glove/backfire2"
+    ]
   }
 }

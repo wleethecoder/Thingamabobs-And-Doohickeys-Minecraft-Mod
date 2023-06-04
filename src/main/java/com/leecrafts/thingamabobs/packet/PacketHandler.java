@@ -33,6 +33,9 @@ public class PacketHandler {
         INSTANCE.messageBuilder(ServerboundSpringLoadedBoxingGloveAttackPacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(ServerboundSpringLoadedBoxingGloveAttackPacket::encode).decoder(ServerboundSpringLoadedBoxingGloveAttackPacket::new)
                 .consumerMainThread(ServerboundSpringLoadedBoxingGloveAttackPacket::handle).add();
+        INSTANCE.messageBuilder(ServerboundSpringLoadedBoxingGloveAnimationPacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerboundSpringLoadedBoxingGloveAnimationPacket::encode).decoder(ServerboundSpringLoadedBoxingGloveAnimationPacket::new)
+                .consumerMainThread(ServerboundSpringLoadedBoxingGloveAnimationPacket::handle).add();
     }
 
 }

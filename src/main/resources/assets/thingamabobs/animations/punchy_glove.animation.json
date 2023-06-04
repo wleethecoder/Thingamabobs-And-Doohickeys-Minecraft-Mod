@@ -1,6 +1,9 @@
 {
 	"format_version": "1.8.0",
 	"animations": {
+		"idle": {
+			"loop": "hold_on_last_frame"
+		},
 		"charge": {
 			"loop": "hold_on_last_frame",
 			"animation_length": 1.25,
@@ -11,8 +14,9 @@
 							"vector": [0, 0, 0]
 						},
 						"1.25": {
-							"vector": [0, 0, 3],
-							"easing": "step"
+							"vector": [0, 0, 6],
+							"easing": "step",
+							"easingArgs": [6]
 						}
 					}
 				},
@@ -22,14 +26,34 @@
 							"vector": [0, 0, 0]
 						},
 						"1.25": {
-							"vector": [0, 0, 3],
-							"easing": "step"
+							"vector": [0, 0, 4],
+							"easing": "step",
+							"easingArgs": [6]
 						}
 					}
 				}
 			}
 		},
-		"shoot": {
+		"charge_idle": {
+			"loop": "hold_on_last_frame",
+			"bones": {
+				"glove": {
+					"position": {
+						"0.0": {
+							"vector": [0, 0, 6]
+						}
+					}
+				},
+				"crank": {
+					"position": {
+						"0.0": {
+							"vector": [0, 0, 4]
+						}
+					}
+				}
+			}
+		},
+		"boing": {
 			"loop": "hold_on_last_frame",
 			"animation_length": 1,
 			"bones": {
@@ -41,7 +65,7 @@
 				"crank": {
 					"position": {
 						"0.0": {
-							"vector": [0, 0, 3]
+							"vector": [0, 0, 4]
 						},
 						"0.0417": {
 							"vector": [0, 0, 0],

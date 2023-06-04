@@ -4,9 +4,11 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.leecrafts.thingamabobs.capability.ModCapabilities;
 import com.leecrafts.thingamabobs.capability.player.PlayerMalletCap;
+import com.leecrafts.thingamabobs.item.client.ComicallyLargeMalletRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -24,17 +26,22 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.common.extensions.IForgeItem;
 import org.jetbrains.annotations.NotNull;
+import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
 
 import static net.minecraft.SharedConstants.TICKS_PER_SECOND;
 
-public class ComicallyLargeMalletItem extends Item implements Vanishable, IForgeItem {
+public class ComicallyLargeMalletItem extends Item implements Vanishable, IForgeItem, GeoItem {
 
     public static final double BASE_DAMAGE = 25.0;
     public static final int CHARGE_TIME = (int) (1.75 * TICKS_PER_SECOND);
     public static final double BASE_SPEED = 1.0 * TICKS_PER_SECOND / CHARGE_TIME;
     private final Multimap<Attribute, AttributeModifier> defaultModifiers;
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this, true);
 
     private static final double EQUIP_X = 1;
     private static final double EQUIP_Y = -1.5;
@@ -83,14 +90,7 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
         return !pPlayer.isCreative();
     }
 
-    @Override
-    public boolean hurtEnemy(@NotNull ItemStack pStack, @NotNull LivingEntity pTarget, @NotNull LivingEntity pAttacker) {
-        pStack.hurtAndBreak(1, pAttacker, (livingEntity -> livingEntity.broadcastBreakEvent(EquipmentSlot.MAINHAND)));
-        return true;
-    }
-
-    // TODO remove
-    // not sure if you can mine with this weapon
+    // This may never be used because you cannot mine with this weapon
     @Override
     public boolean mineBlock(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull BlockState pState, @NotNull BlockPos pPos, @NotNull LivingEntity pMiningEntity) {
         if (pState.getDestroySpeed(pLevel, pPos) != 0) {
@@ -112,6 +112,16 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
     @Override
     public void initializeClient(@NotNull Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
+
+            private ComicallyLargeMalletRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (this.renderer == null) {
+                    this.renderer = new ComicallyLargeMalletRenderer();
+                }
+                return this.renderer;
+            }
 
             // This method does not fire if the camera is in third person.
             @Override
@@ -181,6 +191,15 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
             }
 
         });
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.cache;
     }
 
 }

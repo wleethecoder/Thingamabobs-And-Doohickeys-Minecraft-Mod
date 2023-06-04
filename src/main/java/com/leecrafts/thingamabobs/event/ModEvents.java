@@ -2,9 +2,12 @@ package com.leecrafts.thingamabobs.event;
 
 import com.leecrafts.thingamabobs.ThingamabobsAndDoohickeys;
 import com.leecrafts.thingamabobs.capability.ModCapabilities;
+import com.leecrafts.thingamabobs.capability.entity.EntityStickyBoxingGloveCapProvider;
+import com.leecrafts.thingamabobs.capability.entity.IEntityStickyBoxingGloveCap;
 import com.leecrafts.thingamabobs.capability.player.IPlayerMalletCap;
 import com.leecrafts.thingamabobs.capability.player.PlayerMalletCap;
 import com.leecrafts.thingamabobs.capability.player.PlayerMalletCapProvider;
+import com.leecrafts.thingamabobs.entity.custom.BoxingGloveEntity;
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.packet.PacketHandler;
 import com.leecrafts.thingamabobs.packet.ServerboundComicallyLargeMalletAnimationPacket;
@@ -39,6 +42,7 @@ import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -51,6 +55,21 @@ public class ModEvents {
 
     @Mod.EventBusSubscriber(modid = ThingamabobsAndDoohickeys.MODID)
     public static class ForgeEvents {
+
+        @SubscribeEvent
+        public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+            event.register(IEntityStickyBoxingGloveCap.class);
+        }
+
+        @SubscribeEvent
+        public static void attachCapabilitiesEventEntity(AttachCapabilitiesEvent<Entity> event) {
+            Entity entity = event.getObject();
+            if (entity != null && !entity.getCommandSenderWorld().isClientSide) {
+                if (!entity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).isPresent()) {
+                    event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "entity_sticky_boxing_glove"), new EntityStickyBoxingGloveCapProvider());
+                }
+            }
+        }
 
         @SubscribeEvent
         public static void damageTest(LivingDamageEvent event) {
@@ -67,9 +86,26 @@ public class ModEvents {
             if (event.getEntity() instanceof Player player && player.getMainHandItem().getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get()) {
                 ItemStack offhandItem = player.getOffhandItem();
                 ItemStack offhandItem1 = offhandItem.copy();
-                offhandItem.shrink(offhandItem.getCount());
+                offhandItem.shrink(offhandItem1.getCount());
                 player.addItem(offhandItem1);
             }
+        }
+
+        // Boxing glove projectiles hit by an explosion are deflected towards the shooter
+        @SubscribeEvent
+        public static void explosionEvent(ExplosionEvent.Detonate event) {
+            if (!event.getLevel().isClientSide) {
+                for (Entity entity : event.getAffectedEntities()) {
+                    if (entity instanceof BoxingGloveEntity boxingGloveEntity) {
+                        boxingGloveEntity.setDeflected(true);
+                    }
+                }
+            }
+        }
+
+        // TODO where is a tick event for any entity?
+        @SubscribeEvent
+        public static void livingTickEvent(LivingEvent.LivingTickEvent event) {
         }
 
     }
@@ -78,9 +114,9 @@ public class ModEvents {
     public static class ClientForgeEvents {
 
         public static final ResourceLocation ANIMATION = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "animation");
-        public static final ResourceLocation MALLET_IDLE = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "mallet_idle");
-        public static final ResourceLocation MALLET_CHARGE = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "mallet_charge");
-        public static final ResourceLocation MALLET_SWING = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "mallet_swing");
+        public static final ResourceLocation MALLET_IDLE = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "animation.mallet.idle");
+        public static final ResourceLocation MALLET_CHARGE = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "animation.mallet.charge");
+        public static final ResourceLocation MALLET_SWING = new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "animation.mallet.swing");
         public static final ByteBuf EMPTY_BYTES = Unpooled.wrappedBuffer(ByteBuffer.allocate(0));
         public static final MirrorModifier MIRROR = new MirrorModifier();
 

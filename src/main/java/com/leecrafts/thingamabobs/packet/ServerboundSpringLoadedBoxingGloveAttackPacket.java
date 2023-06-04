@@ -4,7 +4,6 @@ import com.leecrafts.thingamabobs.entity.custom.BoxingGloveEntity;
 import com.leecrafts.thingamabobs.sound.ModSounds;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -26,14 +25,14 @@ public class ServerboundSpringLoadedBoxingGloveAttackPacket {
     public final float projectileDamage;
     public final float projectileBaseMaxDistance;
 
-    public ServerboundSpringLoadedBoxingGloveAttackPacket(int shooterId, InteractionHand interactionHand, double shooterVelocityX, double shooterVelocityY, double shooterVelocityZ, float projectileDamage, float projectileMaxDistance) {
+    public ServerboundSpringLoadedBoxingGloveAttackPacket(int shooterId, InteractionHand interactionHand, double shooterVelocityX, double shooterVelocityY, double shooterVelocityZ, float projectileDamage, float projectileBaseMaxDistance) {
         this.shooterId = shooterId;
         this.interactionHand = interactionHand;
         this.shooterVelocityX = shooterVelocityX;
         this.shooterVelocityY = shooterVelocityY;
         this.shooterVelocityZ = shooterVelocityZ;
         this.projectileDamage = projectileDamage;
-        this.projectileBaseMaxDistance = projectileMaxDistance;
+        this.projectileBaseMaxDistance = projectileBaseMaxDistance;
     }
 
     public ServerboundSpringLoadedBoxingGloveAttackPacket(FriendlyByteBuf buffer) {
@@ -56,13 +55,13 @@ public class ServerboundSpringLoadedBoxingGloveAttackPacket {
             if (sender != null) {
                 Level level = sender.level;
                 if (level.getEntity(this.shooterId) instanceof LivingEntity shooter) {
-                    ItemStack itemStack = shooter.getItemInHand(this.interactionHand);
-                    BoxingGloveEntity boxingGloveEntity = new BoxingGloveEntity(level, shooter, itemStack, this.projectileDamage);
+                    ItemStack weapon = shooter.getItemInHand(this.interactionHand);
+                    BoxingGloveEntity boxingGloveEntity = new BoxingGloveEntity(level, shooter, weapon, this.projectileDamage);
                     boxingGloveEntity.shoot(shooter, new Vec3(this.shooterVelocityX, this.shooterVelocityY, this.shooterVelocityZ), this.projectileBaseMaxDistance);
                     level.addFreshEntity(boxingGloveEntity);
                     level.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(), ModSounds.SPRING_LOADED_BOXING_GLOVE_BOING.get(), SoundSource.PLAYERS, 5.0f, (sender.getRandom().nextFloat() - sender.getRandom().nextFloat()) * 0.2f + 1.0f);
                     if (shooter instanceof ServerPlayer serverPlayer) {
-                        serverPlayer.awardStat(Stats.ITEM_USED.get(itemStack.getItem()));
+                        serverPlayer.awardStat(Stats.ITEM_USED.get(weapon.getItem()));
                     }
                 }
             }

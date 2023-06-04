@@ -1,37 +1,42 @@
 {
-	"credit": "Made with Blockbench",
-	"texture_size": [32, 32],
-	"textures": {
-		"2": "thingamabobs:item/mallet/hammer",
-		"3": "thingamabobs:item/mallet/handle",
-		"particle": "thingamabobs:item/mallet/handle"
-	},
-	"elements": [
-		{
-			"name": "handle",
-			"from": [7, -8, 7],
-			"to": [9, 32, 9],
-			"faces": {
-				"north": {"uv": [0, 0, 1, 13], "texture": "#3"},
-				"east": {"uv": [1, 0, 2, 13], "texture": "#3"},
-				"south": {"uv": [2, 0, 3, 13], "texture": "#3"},
-				"west": {"uv": [3, 0, 4, 13], "texture": "#3"},
-				"up": {"uv": [5, 1, 4, 0], "texture": "#3"},
-				"down": {"uv": [5, 1, 4, 2], "texture": "#3"}
-			}
-		},
-		{
-			"name": "hammer",
-			"from": [1, 16, -3],
-			"to": [15, 30, 19],
-			"faces": {
-				"north": {"uv": [0, 0, 5.5, 3.5], "texture": "#2"},
-				"east": {"uv": [0, 7, 3.5, 10.5], "texture": "#2"},
-				"south": {"uv": [0, 3.5, 5.5, 7], "texture": "#2"},
-				"west": {"uv": [3.5, 7, 7, 10.5], "texture": "#2"},
-				"up": {"uv": [11, 3.5, 5.5, 0], "texture": "#2"},
-				"down": {"uv": [11, 3.5, 5.5, 7], "texture": "#2"}
-			}
-		}
-	]
+  "credit": "Made with Blockbench",
+  "parent": "builtin/entity",
+  "texture_size": [
+    128,
+    128
+  ],
+  "textures": {
+    "particle": "thingamabobs:item/mallet"
+  },
+  "display": {
+    "gui": {
+      "rotation": [
+        2.2,
+        -29.86,
+        -23.25
+      ],
+      "translation": [
+        -2.25,
+        -2.25,
+        0
+      ],
+      "scale": [
+        0.39,
+        0.39,
+        0.39
+      ]
+    },
+    "fixed": {
+      "translation": [
+        0,
+        -2.5,
+        0
+      ],
+      "scale": [
+        0.39,
+        0.39,
+        0.39
+      ]
+    }
+  }
 }
