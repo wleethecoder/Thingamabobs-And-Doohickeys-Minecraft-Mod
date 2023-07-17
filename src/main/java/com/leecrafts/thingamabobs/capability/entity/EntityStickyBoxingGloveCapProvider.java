@@ -17,7 +17,10 @@ public class EntityStickyBoxingGloveCapProvider implements ICapabilitySerializab
 
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        return ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY.orEmpty(cap, entityStickyBoxingGloveCapLazyOptional);
+        if (cap == ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY) {
+            return entityStickyBoxingGloveCapLazyOptional.cast();
+        }
+        return LazyOptional.empty();
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.leecrafts.thingamabobs.capability.ModCapabilities;
 import com.leecrafts.thingamabobs.capability.player.PlayerMalletCap;
+import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.item.client.ComicallyLargeMalletRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -21,6 +22,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Vanishable;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
@@ -31,6 +34,7 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import static net.minecraft.SharedConstants.TICKS_PER_SECOND;
@@ -38,11 +42,13 @@ import static net.minecraft.SharedConstants.TICKS_PER_SECOND;
 public class ComicallyLargeMalletItem extends Item implements Vanishable, IForgeItem, GeoItem {
 
     public static final double BASE_DAMAGE = 25.0;
-    public static final int CHARGE_TIME = (int) (1.75 * TICKS_PER_SECOND);
-    public static final double BASE_SPEED = 1.0 * TICKS_PER_SECOND / CHARGE_TIME;
+    public static final int BASE_CHARGE_TIME = (int) (1.75 * TICKS_PER_SECOND);
+    public static final double BASE_SPEED = 1.0 * TICKS_PER_SECOND / BASE_CHARGE_TIME;
     private final Multimap<Attribute, AttributeModifier> defaultModifiers;
+    public static final UUID INCREASED_ATTACK_SPEED_UUID = UUID.fromString("4be2216f-e0d0-46d4-af5e-7d94533fc81d");
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this, true);
 
+    // TODO test on multiplayer server. is it good to have global variables in item class?
     private static final double EQUIP_X = 1;
     private static final double EQUIP_Y = -1.5;
     private static final double EQUIP_Z = -1;
@@ -105,8 +111,17 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
     }
 
     @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        return super.canApplyAtEnchantingTable(stack, enchantment) || enchantment == Enchantments.MOB_LOOTING;
+    }
+
+    @Override
     public int getEnchantmentValue(ItemStack stack) {
         return 1;
+    }
+
+    public static int getChargeTime(ItemStack itemStack) {
+        return (int) ((1.75 - 0.125 * itemStack.getEnchantmentLevel(ModEnchantments.HANDLING.get())) * TICKS_PER_SECOND);
     }
 
     @Override
@@ -137,7 +152,7 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
                         }
                         else if (playerMalletCap.firstPersonMalletSwingAnim == -1) {
                             boolean progressing = playerMalletCap.malletCharge > 0;
-                            double chargeProgress = Math.min(1.0, (playerMalletCap.malletCharge + (progressing ? partialTick : 0) - playerMalletCap.firstPersonMalletChargeOffset) / (CHARGE_TIME - playerMalletCap.firstPersonMalletChargeOffset));
+                            double chargeProgress = Math.min(1.0, (playerMalletCap.malletCharge + (progressing ? partialTick : 0) - playerMalletCap.firstPersonMalletChargeOffset) / (getChargeTime(itemInHand) - playerMalletCap.firstPersonMalletChargeOffset));
                             this.nextPosAndRot(IDLE_X, IDLE_Y, IDLE_Z, CHARGE_X, CHARGE_Y, CHARGE_Z, IDLE_X_ROT, IDLE_Z_ROT, CHARGE_X_ROT, CHARGE_Z_ROT, chargeProgress, multiplier);
                         }
                         else if (playerMalletCap.firstPersonMalletSwingAnim < SWING_TIME + 10) {

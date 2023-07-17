@@ -99,7 +99,7 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
             // In case the client and server do not sync well.
             // pTimeLeft can sometimes be different between the client and server sides (i.e. smaller value in client side due to server lag)
             // Therefore, the weapon can appear not charged even when it is, as the server handles the animations.
-            
+
             // By the way, I am aware that packets can read ItemStacks, but for some reason, the NBT does not save data properly when I pass an itemStack through the packet.
             InteractionHand interactionHand = pLivingEntity.getItemInHand(InteractionHand.MAIN_HAND).is(pStack.getItem()) ?
                     InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
@@ -188,6 +188,11 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
                 enchantment == Enchantments.PUNCH_ARROWS) &&
                 enchantment != Enchantments.MULTISHOT &&
                 enchantment != Enchantments.PIERCING;
+    }
+
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return 14;
     }
 
     public static float getBaseMaxProjectileDistance(ItemStack itemStack) {

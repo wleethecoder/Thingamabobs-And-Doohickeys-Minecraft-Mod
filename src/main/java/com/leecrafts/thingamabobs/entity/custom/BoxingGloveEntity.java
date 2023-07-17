@@ -1,8 +1,6 @@
 package com.leecrafts.thingamabobs.entity.custom;
 
 import com.google.common.collect.Lists;
-import com.leecrafts.thingamabobs.capability.ModCapabilities;
-import com.leecrafts.thingamabobs.capability.entity.EntityStickyBoxingGloveCap;
 import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.entity.ModEntityTypes;
 import com.leecrafts.thingamabobs.item.custom.SpringLoadedBoxingGloveItem;
@@ -18,6 +16,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
@@ -56,12 +57,13 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
     private static final EntityDataAccessor<Integer> DATA_QUICK_CHARGE_LEVEL = SynchedEntityData.defineId(BoxingGloveEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> DATA_IS_STICKY = SynchedEntityData.defineId(BoxingGloveEntity.class, EntityDataSerializers.BOOLEAN);
     private static final int TIME_BEFORE_REBOUND = (int) (0.75 * TICKS_PER_SECOND);
-    private static final double LIFE_SPAN_IN_SECONDS = 3;
+    private static final int LIFE_SPAN = 3 * TICKS_PER_SECOND;
     protected boolean inGround;
     protected boolean isRebounding;
     protected boolean initialized;
     protected int damageToItem;
     private int knockback;
+    public final List<LivingEntity> stuckLivingEntities;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public BoxingGloveEntity(EntityType<? extends BoxingGloveEntity> pEntityType, Level pLevel) {
@@ -71,6 +73,7 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         this.initialized = false;
         this.damageToItem = 0;
         this.noCulling = true;
+        this.stuckLivingEntities = Lists.newArrayList();
     }
 
     public BoxingGloveEntity(Level level, LivingEntity shooter, ItemStack weapon, float damage) {
@@ -104,8 +107,8 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         super.tick();
 
         Entity shooter = this.getOwner();
-        if (this.tickCount >= LIFE_SPAN_IN_SECONDS * TICKS_PER_SECOND) {
-            this.returnToShooter();
+        if (this.tickCount >= LIFE_SPAN) {
+            this.returnToShooter(shooter);
         }
         BlockState blockState = this.level.getBlockState(this.blockPosition());
         if (this.isInWaterOrRain() || blockState.is(Blocks.POWDER_SNOW) || this.isInFluidType((fluidType, height) -> this.canFluidExtinguish(fluidType))) {
@@ -120,19 +123,26 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                 // block hit result
                 Vec3 vec31 = this.position();
                 Vec3 vec32 = vec31.add(vec3);
-                BlockHitResult blockHitResult = this.level.clip(new ClipContext(vec31, vec32, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
-                if (blockHitResult.getType() != HitResult.Type.MISS) {
-                    if (!ForgeEventFactory.onProjectileImpact(this, blockHitResult)) {
-                        Level level = this.level;
-                        BlockPos blockPos = blockHitResult.getBlockPos();
-                        BlockState blockState1 = level.getBlockState(blockPos);
-                        Block block = blockState1.getBlock();
-                        float hardness = block.defaultDestroyTime();
-                        if (block instanceof SlimeBlock || block instanceof BedBlock) {
-                            this.setDeflected(true);
-                        }
-                        else if (blockState1.getMaterial() != Material.LEAVES && hardness >= 0.0f && hardness <= 0.3f && this.mayInteract(level, blockPos)) {
-                            if (!level.isClientSide) {
+                int numClips = Mth.ceil(vec3.length());
+                ClipContext clipContext = new ClipContext(vec31, vec32, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this);
+                for (int i = 0; i < numClips; i++) {
+                    BlockHitResult blockHitResult = this.level.clip(clipContext);
+                    if (blockHitResult.getType() != HitResult.Type.MISS) {
+                        if (!ForgeEventFactory.onProjectileImpact(this, blockHitResult)) {
+                            Level level = this.level;
+                            BlockPos blockPos = blockHitResult.getBlockPos();
+                            BlockState blockState1 = level.getBlockState(blockPos);
+                            Block block = blockState1.getBlock();
+                            float hardness = block.defaultDestroyTime();
+                            if (block instanceof SlimeBlock || block instanceof BedBlock) {
+                                this.setDeflected(true);
+                                break;
+                            }
+                            else if (blockState1.getMaterial() != Material.LEAVES &&
+                                    hardness >= 0.0f &&
+                                    hardness <= 0.3f &&
+                                    this.mayInteract(level, blockPos) &&
+                                    !level.isClientSide) {
                                 level.destroyBlock(blockPos, false, this);
                                 ItemStack weapon = this.getWeapon();
                                 if (weapon != null && weapon.getItem() instanceof SpringLoadedBoxingGloveItem) {
@@ -145,12 +155,13 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                                     }
                                 }
                             }
-                        }
-                        else {
-                            vec32 = blockHitResult.getLocation();
-                            this.onHit(blockHitResult);
-                            this.hasImpulse = true;
-                            vec3 = this.getDeltaMovement(); // this.getDeltamovment() has been changed from onHitBlock()
+                            else {
+                                vec32 = blockHitResult.getLocation();
+                                this.onHit(blockHitResult);
+                                this.hasImpulse = true;
+                                vec3 = this.getDeltaMovement(); // this.getDeltamovment() has been changed from onHitBlock()
+                                break;
+                            }
                         }
                     }
                 }
@@ -197,12 +208,13 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                         this.onHitEntity(new EntityHitResult(shooter));
                     }
 
-                    if (this.tickCount >= TIME_BEFORE_REBOUND * 2) {
+                    // TODO tweak
+                    if (this.tickCount >= TIME_BEFORE_REBOUND * 2 || this.isFar(shooter)) {
                         System.out.println("speeding up");
                         this.setAcceleration(this.getAcceleration() + 0.05f);
                     }
                     vec3 = vec33.normalize().scale(
-                            Mth.clamp(vec3.length() + this.getAcceleration(), minSpeed, 2.5));
+                            Mth.clamp(vec3.length() + this.getAcceleration(), minSpeed, 4));
                     Vec3 vec34 = vec3.scale(sign);
                     double d0 = vec34.horizontalDistance();
                     this.setXRot(lerpRotation(this.xRotO, (float)(Mth.atan2(vec34.y, d0) * (double)(180F / (float)Math.PI))));
@@ -221,13 +233,22 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                 this.isRebounding = true;
             }
         }
+
+        if (this.isSticky() && !this.isRemoved()) {
+            for (LivingEntity livingEntity : this.stuckLivingEntities) {
+                livingEntity.setDeltaMovement(Vec3.ZERO);
+                this.entityMoveFunction(livingEntity);
+            }
+        }
     }
 
     @Override
     protected boolean canHitEntity(@NotNull Entity pTarget) {
         Entity shooter = this.getOwner();
         boolean targetIsShooter = shooter != null && pTarget.is(shooter);
-        return (pTarget.canBeHitByProjectile() && !this.isRebounding && !targetIsShooter) || (this.isRebounding && targetIsShooter);
+//        return (pTarget.canBeHitByProjectile() && !this.isRebounding && !targetIsShooter) || (this.isRebounding && targetIsShooter);
+        return ((pTarget.canBeHitByProjectile() || this.isSticky()) && !this.isRebounding && !targetIsShooter) ||
+                (this.isRebounding && targetIsShooter);
     }
 
     @Override
@@ -235,13 +256,15 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         super.onHitEntity(pResult);
         Entity shooter = this.getOwner();
         Entity target = pResult.getEntity();
-        DamageSource damageSource = this.damageSources().mobProjectile(this, shooter instanceof LivingEntity ? (LivingEntity) shooter : null);
-//        if (shooter instanceof Player) {
-//            damageSource = this.damageSources().playerAttack((Player) shooter);
-//        }
-//        else {
-//            damageSource = this.damageSources().mobProjectile(this, shooter instanceof LivingEntity ? (LivingEntity) shooter : null);
-//        }
+        // TODO armor stands are unaffected because the damageSource is not a player attack
+        // But this also needs to be a mobProjectile so that EnderMen can dodge it
+        DamageSource damageSource;
+        if (shooter instanceof Player && target instanceof ArmorStand) {
+            damageSource = this.damageSources().playerAttack((Player) shooter);
+        }
+        else {
+            damageSource = this.damageSources().mobProjectile(this, shooter instanceof LivingEntity ? (LivingEntity) shooter : null);
+        }
         boolean isEnderMan = target.getType() == EntityType.ENDERMAN;
         if (this.isOnFire() && !isEnderMan) {
             target.setSecondsOnFire(5);
@@ -254,12 +277,13 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         // When projectile returns to shooter, it is discarded
         if (targetIsShooter) {
             if (this.isDeflected()) {
+
                 // Shooters hit by deflected projectiles have their invincibility frames reset to receive full damage and knockback
                 shooter.invulnerableTime = 0;
 
                 this.punch(shooter, target, damageSource, isEnderMan, true, false);
             }
-            this.returnToShooter();
+            this.returnToShooter(shooter);
         }
         else {
             this.punch(shooter, target, damageSource, isEnderMan, false, this.isSticky());
@@ -267,18 +291,9 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
     }
 
     private void punch(Entity shooter, Entity target, DamageSource damageSource, boolean isEnderMan, boolean isDeflected, boolean isSticky) {
-        if ((target.hurt(damageSource, this.getDamage()) || isSticky) && !isEnderMan) {
+        if ((!target.canBeHitByProjectile() || target instanceof PrimedTnt || target.hurt(damageSource, this.getDamage())) &&
+                !isEnderMan) {
             target.stopRiding();
-            if (isSticky) {
-                // TODO riding or capabilities?
-                // TODO if riding, then change pose and enable non-living entities to ride
-//                target.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).ifPresent(iEntityStickyBoxingGloveCap -> {
-//                    EntityStickyBoxingGloveCap entityStickyBoxingGloveCap = (EntityStickyBoxingGloveCap) iEntityStickyBoxingGloveCap;
-//                    entityStickyBoxingGloveCap.boxingGloveId = this.getId();
-//                });
-                target.setPose(Pose.STANDING);
-                target.startRiding(this, true);
-            }
             if (target instanceof LivingEntity livingEntity) {
                 if (!isSticky) {
                     double knockbackFactor = Math.max(0.5, 1 - livingEntity.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
@@ -298,6 +313,9 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                         this.playSound(ModSounds.SPRING_LOADED_BOXING_GLOVE_BACKFIRE.get(), 5.0f, (this.random.nextFloat() - this.random.nextFloat()) * 0.2f + 1.0f);
                     }
                 }
+            }
+            else if (isSticky && !(target instanceof BoxingGloveEntity)) {
+                target.startRiding(this, true);
             }
         }
     }
@@ -320,7 +338,8 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         for(Entity entity1 : this.level.getEntities(this, aabb, this::canHitEntity)) {
             AABB aabb1 = entity1.getBoundingBox().inflate(0.3f);
             Optional<Vec3> optional = aabb1.clip(pStartVec, pEndVec);
-            if (optional.isPresent()) {
+            // it's easier for ItemEntities to be hit by the projectile
+            if (optional.isPresent() || entity1 instanceof ItemEntity) {
                 list.add(new EntityHitResult(entity1));
             }
         }
@@ -328,7 +347,20 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         return list;
     }
 
-    public void returnToShooter() {
+    public void returnToShooter(Entity shooter) {
+        if (shooter != null && this.isSticky()) {
+            Vec3 vec3 = shooter.position().add(this.position().subtract(shooter.position()).normalize().scale(1 + shooter.getBbWidth() / 2));
+            for (LivingEntity livingEntity : this.stuckLivingEntities) {
+                if (livingEntity != null && !livingEntity.isRemoved()) {
+                    int dismountOffset = this.level.getBlockState(livingEntity.blockPosition()).getMaterial().isSolid() ? 1 : 0;
+                    livingEntity.teleportTo(vec3.x, vec3.y + dismountOffset, vec3.z);
+                }
+            }
+            for (Entity entity : this.getPassengers()) {
+                entity.stopRiding();
+                entity.teleportTo(shooter.getX(), shooter.getY(), shooter.getZ());
+            }
+        }
         this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, ((this.random.nextFloat() - this.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
         this.discard();
     }
@@ -341,10 +373,14 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
     @Override
     public void positionRider(@NotNull Entity pPassenger) {
         if (this.hasPassenger(pPassenger)) {
-            double d0 = this.getY() + this.getPassengersRidingOffset() - pPassenger.getBbHeight() / 2.0f;
-            Entity.MoveFunction callback = Entity::setPos;
-            callback.accept(pPassenger, this.getX(), d0, this.getZ());
+            this.entityMoveFunction(pPassenger);
         }
+    }
+
+    private void entityMoveFunction(Entity entity) {
+        double d0 = this.getY() + this.getPassengersRidingOffset() - entity.getBbHeight() / 2.0f;
+        Entity.MoveFunction callback = Entity::setPos;
+        callback.accept(entity, this.getX(), d0, this.getZ());
     }
 
     @Override
@@ -357,6 +393,11 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
     @Override
     public boolean ignoreExplosion() {
         return true;
+    }
+
+    @Override
+    public boolean canChangeDimensions() {
+        return false;
     }
 
     @Override
@@ -435,7 +476,6 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         this.entityData.set(DATA_IS_STICKY, isSticky);
     }
 
-    // TODO tweak; maybe consider using this.tickCount?
     private boolean isFar(Entity shooter) {
         return this.distanceTo(shooter) > 1.1 * this.getBaseMaxDistance();
     }

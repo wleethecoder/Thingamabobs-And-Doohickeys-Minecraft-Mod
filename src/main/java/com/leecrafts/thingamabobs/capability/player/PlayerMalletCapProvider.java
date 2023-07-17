@@ -17,7 +17,10 @@ public class PlayerMalletCapProvider implements ICapabilitySerializable<Compound
 
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        return ModCapabilities.PLAYER_MALLET_CAPABILITY.orEmpty(cap, playerCapLazyOptional);
+        if (cap == ModCapabilities.PLAYER_MALLET_CAPABILITY) {
+            return playerCapLazyOptional.cast();
+        }
+        return LazyOptional.empty();
     }
 
     @Override

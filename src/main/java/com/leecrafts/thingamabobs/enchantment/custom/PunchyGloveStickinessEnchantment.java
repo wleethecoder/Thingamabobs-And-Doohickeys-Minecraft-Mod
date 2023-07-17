@@ -6,9 +6,9 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import org.jetbrains.annotations.NotNull;
 
-public class StickyBoxingGloveEnchantment extends Enchantment {
+public class PunchyGloveStickinessEnchantment extends Enchantment {
 
-    public StickyBoxingGloveEnchantment(Rarity pRarity, EquipmentSlot... pApplicableSlots) {
+    public PunchyGloveStickinessEnchantment(Rarity pRarity, EquipmentSlot... pApplicableSlots) {
         super(pRarity, ModEnchantments.PUNCHY_GLOVE_ENCHANTMENT_CATEGORY, pApplicableSlots);
     }
 

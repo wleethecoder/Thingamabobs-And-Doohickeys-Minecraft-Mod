@@ -2,13 +2,14 @@ package com.leecrafts.thingamabobs.event;
 
 import com.leecrafts.thingamabobs.ThingamabobsAndDoohickeys;
 import com.leecrafts.thingamabobs.capability.ModCapabilities;
-import com.leecrafts.thingamabobs.capability.entity.EntityStickyBoxingGloveCapProvider;
-import com.leecrafts.thingamabobs.capability.entity.IEntityStickyBoxingGloveCap;
+import com.leecrafts.thingamabobs.capability.entity.*;
 import com.leecrafts.thingamabobs.capability.player.IPlayerMalletCap;
 import com.leecrafts.thingamabobs.capability.player.PlayerMalletCap;
 import com.leecrafts.thingamabobs.capability.player.PlayerMalletCapProvider;
+import com.leecrafts.thingamabobs.entity.custom.AbstractExplosivePastryEntity;
 import com.leecrafts.thingamabobs.entity.custom.BoxingGloveEntity;
 import com.leecrafts.thingamabobs.item.ModItems;
+import com.leecrafts.thingamabobs.item.custom.ComicallyLargeMalletItem;
 import com.leecrafts.thingamabobs.packet.PacketHandler;
 import com.leecrafts.thingamabobs.packet.ServerboundComicallyLargeMalletAnimationPacket;
 import com.leecrafts.thingamabobs.packet.ServerboundComicallyLargeMalletAttackPacket;
@@ -25,12 +26,20 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -39,17 +48,19 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 import static com.leecrafts.thingamabobs.item.custom.ComicallyLargeMalletItem.*;
+import static net.minecraft.SharedConstants.TICKS_PER_SECOND;
 
 public class ModEvents {
 
@@ -59,14 +70,27 @@ public class ModEvents {
         @SubscribeEvent
         public static void registerCapabilities(RegisterCapabilitiesEvent event) {
             event.register(IEntityStickyBoxingGloveCap.class);
+            event.register(IEntityExplosivePastryCap.class);
         }
 
         @SubscribeEvent
         public static void attachCapabilitiesEventEntity(AttachCapabilitiesEvent<Entity> event) {
             Entity entity = event.getObject();
             if (entity != null && !entity.getCommandSenderWorld().isClientSide) {
-                if (!entity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).isPresent()) {
-                    event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "entity_sticky_boxing_glove"), new EntityStickyBoxingGloveCapProvider());
+                if (!entity.getCapability(ModCapabilities.ENTITY_EXPLOSIVE_PASTRY_CAPABILITY).isPresent()) {
+                    EntityExplosivePastryCapProvider entityExplosivePastryCapProvider = new EntityExplosivePastryCapProvider();
+                    event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "entity_explosive_pastry"), entityExplosivePastryCapProvider);
+                    if (!(entity instanceof Player)) {
+                        event.addListener(entityExplosivePastryCapProvider::invalidate);
+                    }
+                }
+                if (entity instanceof LivingEntity livingEntity &&
+                        !livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).isPresent()) {
+                    EntityStickyBoxingGloveCapProvider entityStickyBoxingGloveCapProvider = new EntityStickyBoxingGloveCapProvider();
+                    event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "entity_sticky_boxing_glove"), entityStickyBoxingGloveCapProvider);
+                    if (!(livingEntity instanceof Player)) {
+                        event.addListener(entityStickyBoxingGloveCapProvider::invalidate);
+                    }
                 }
             }
         }
@@ -78,16 +102,49 @@ public class ModEvents {
             }
         }
 
+        @SubscribeEvent
+        public static void malletAttributeModifierEvent(ItemAttributeModifierEvent event) {
+            ItemStack itemStack = event.getItemStack();
+            if (itemStack.getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get() && event.getSlotType() == EquipmentSlot.MAINHAND) {
+                double attackSpeed = 1.0 * TICKS_PER_SECOND / getChargeTime(itemStack);
+                event.addModifier(Attributes.ATTACK_SPEED, new AttributeModifier(INCREASED_ATTACK_SPEED_UUID, "Tool modifier", attackSpeed - BASE_SPEED, AttributeModifier.Operation.ADDITION));
+//                System.out.println(event.getModifiers().get(Attributes.ATTACK_SPEED));
+            }
+        }
+
         // TODO fix server-client networking issues
         // TODO fix stackable items disappearing
         // TODO maybe add capability that measures how much time item is in offhand slot while mallet is in main hand slot?
         @SubscribeEvent
-        public static void holdingMalletTick(LivingEvent.LivingTickEvent event) {
-            if (event.getEntity() instanceof Player player && player.getMainHandItem().getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get()) {
-                ItemStack offhandItem = player.getOffhandItem();
-                ItemStack offhandItem1 = offhandItem.copy();
-                offhandItem.shrink(offhandItem1.getCount());
-                player.addItem(offhandItem1);
+        public static void holdingMalletTick(TickEvent.PlayerTickEvent event) {
+            if (event.phase == TickEvent.Phase.END) {
+                if (event.player instanceof ServerPlayer serverPlayer && serverPlayer.tickCount % 20 == 0) {
+                    ItemStack offhandItem = serverPlayer.getOffhandItem();
+                    if (serverPlayer.getMainHandItem().getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get() &&
+                            !offhandItem.isEmpty()) {
+//                        ItemStack offhandItem1 = offhandItem.copy();
+//                        offhandItem.shrink(offhandItem.getCount());
+//                        serverPlayer.getInventory().placeItemBackInInventory(offhandItem);
+                        Inventory inventory = serverPlayer.getInventory();
+                        int i = inventory.getFreeSlot();
+                        while (true) {
+                            if (i != -1) {
+                                int j = offhandItem.getMaxStackSize() - inventory.getItem(i).getCount();
+                                if (inventory.add(i, offhandItem.split(j))) {
+                                    serverPlayer.connection.send(
+                                            new ClientboundContainerSetSlotPacket(-2, 0, i, inventory.getItem(i)));
+                                }
+                                continue;
+                            }
+                            else {
+                                inventory.player.drop(offhandItem, false);
+                            }
+                            return;
+                        }
+
+//                        PacketHandler.INSTANCE.sendToServer(new ServerboundComicallyLargeMalletItemPacket(offhandItem2));
+                    }
+                }
             }
         }
 
@@ -103,9 +160,90 @@ public class ModEvents {
             }
         }
 
-        // TODO where is a tick event for any entity?
+        // The reason why I did not make the living entity ride the glove is because there is no good way to force it into a standing position.
+        // (I did not want the living entity to be in a sitting position while being pulled by the glove)
+        @SubscribeEvent
+        public static void livingHurtEvent(LivingHurtEvent event) {
+            LivingEntity livingEntity = event.getEntity();
+            Level level = livingEntity.level;
+            if (!level.isClientSide &&
+                    event.getSource().getDirectEntity() instanceof BoxingGloveEntity boxingGloveEntity) {
+                livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).ifPresent(iEntityStickyBoxingGloveCap -> {
+                    EntityStickyBoxingGloveCap entityStickyBoxingGloveCap = (EntityStickyBoxingGloveCap) iEntityStickyBoxingGloveCap;
+                    if (level.getEntity(entityStickyBoxingGloveCap.boxingGloveId) instanceof BoxingGloveEntity previousStuckBoxingGloveEntity) {
+                        previousStuckBoxingGloveEntity.stuckLivingEntities.remove(livingEntity);
+                    }
+                    if (boxingGloveEntity.isSticky()) {
+                        entityStickyBoxingGloveCap.boxingGloveId = boxingGloveEntity.getId();
+                        boxingGloveEntity.stuckLivingEntities.add(livingEntity);
+                    }
+                    else {
+                        entityStickyBoxingGloveCap.boxingGloveId = -1;
+                    }
+                });
+            }
+        }
+
         @SubscribeEvent
         public static void livingTickEvent(LivingEvent.LivingTickEvent event) {
+            LivingEntity livingEntity = event.getEntity();
+            Level level = livingEntity.level;
+            if (!level.isClientSide) {
+                livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).ifPresent(iEntityStickyBoxingGloveCap -> {
+                    EntityStickyBoxingGloveCap entityStickyBoxingGloveCap = (EntityStickyBoxingGloveCap) iEntityStickyBoxingGloveCap;
+                    if (entityStickyBoxingGloveCap.boxingGloveId != -1 && !(level.getEntity(entityStickyBoxingGloveCap.boxingGloveId) instanceof BoxingGloveEntity)) {
+                        entityStickyBoxingGloveCap.boxingGloveId = -1;
+                    }
+                });
+            }
+        }
+
+        @SubscribeEvent
+        public static void livingDropsEvent(LivingDropsEvent event) {
+            if (!event.getEntity().level.isClientSide &&
+                    event.getSource().getDirectEntity() instanceof BoxingGloveEntity boxingGloveEntity &&
+                    boxingGloveEntity.isSticky()) {
+                Entity shooter = boxingGloveEntity.getOwner();
+                if (shooter != null) {
+                    for (ItemEntity itemEntity : event.getDrops()) {
+                        itemEntity.teleportTo(shooter.getX(), shooter.getY(), shooter.getZ());
+                    }
+                }
+            }
+        }
+
+        @SubscribeEvent
+        public static void livingExperienceDropEvent(LivingExperienceDropEvent event) {
+            LivingEntity livingEntity = event.getEntity();
+            Level level = livingEntity.level;
+            Player attackingPlayer = event.getAttackingPlayer();
+            if (!level.isClientSide && attackingPlayer != null) {
+                livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).ifPresent(iEntityStickyBoxingGloveCap -> {
+                    EntityStickyBoxingGloveCap entityStickyBoxingGloveCap = (EntityStickyBoxingGloveCap) iEntityStickyBoxingGloveCap;
+                    if (level.getEntity(entityStickyBoxingGloveCap.boxingGloveId) instanceof BoxingGloveEntity boxingGloveEntity &&
+                            boxingGloveEntity.isSticky()) {
+                        event.setCanceled(true);
+                        level.addFreshEntity(new ExperienceOrb(
+                                level,
+                                attackingPlayer.getX(),
+                                attackingPlayer.getY(),
+                                attackingPlayer.getZ(),
+                                event.getDroppedExperience()));
+                    }
+                });
+            }
+        }
+
+        @SubscribeEvent
+        public static void entityTravelToDimensionEvent(EntityTravelToDimensionEvent event) {
+            if (event.getEntity() instanceof LivingEntity livingEntity && !livingEntity.level.isClientSide) {
+                livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).ifPresent(iEntityStickyBoxingGloveCap -> {
+                    EntityStickyBoxingGloveCap entityStickyBoxingGloveCap = (EntityStickyBoxingGloveCap) iEntityStickyBoxingGloveCap;
+                    if (entityStickyBoxingGloveCap.boxingGloveId != -1) {
+                        event.setCanceled(true);
+                    }
+                });
+            }
         }
 
     }
@@ -139,34 +277,38 @@ public class ModEvents {
         @SubscribeEvent
         public static void clientTick(TickEvent.ClientTickEvent event) {
             if (event.phase == TickEvent.Phase.START) {
-                LocalPlayer localPlayer = Minecraft.getInstance().player;
+                Minecraft minecraft = Minecraft.getInstance();
+                LocalPlayer localPlayer = minecraft.player;
                 if (localPlayer != null) {
                     localPlayer.getCapability(ModCapabilities.PLAYER_MALLET_CAPABILITY).ifPresent(iPlayerCap -> {
                         PlayerMalletCap playerMalletCap = (PlayerMalletCap) iPlayerCap;
-                        boolean leftMouse = Minecraft.getInstance().mouseHandler.isLeftPressed();
-                        boolean holdingMallet = localPlayer.getMainHandItem().getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get();
-                        boolean mirrored = Minecraft.getInstance().options.mainHand().get() == HumanoidArm.LEFT;
+                        boolean leftMouse = minecraft.mouseHandler.isLeftPressed();
+                        boolean rightMouse = minecraft.mouseHandler.isRightPressed();
+                        ItemStack mainHand = localPlayer.getMainHandItem();
+                        boolean holdingMallet = mainHand.getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get();
+                        boolean mirrored = minecraft.options.mainHand().get() == HumanoidArm.LEFT;
+                        int chargeTime = ComicallyLargeMalletItem.getChargeTime(mainHand);
 
                         if (!holdingMallet || !leftMouse) {
                             if (!leftMouse) {
                                 // The mallet, when at least 50% charged, will deal damage (0 damage otherwise).
                                 // If the mallet is 100% charged, it deals damage to all entities in an area between the player and its reach distance.
-                                if (playerMalletCap.malletCharge > CHARGE_TIME / 2) {
+                                if (playerMalletCap.malletCharge > chargeTime / 2) {
                                     // called so that the player will face where it attacks
                                     localPlayer.swing(InteractionHand.MAIN_HAND);
 
-                                    if (playerMalletCap.malletCharge >= CHARGE_TIME) {
+                                    if (playerMalletCap.malletCharge >= chargeTime) {
                                         double radius = localPlayer.getEntityReach() / 2;
                                         StringBuilder listString = getHitEntities(localPlayer, radius);
                                         PacketHandler.INSTANCE.sendToServer(
-                                                new ServerboundComicallyLargeMalletAttackPacket(playerMalletCap.malletCharge, listString.toString()));
+                                                new ServerboundComicallyLargeMalletAttackPacket(playerMalletCap.malletCharge, listString.toString(), rightMouse));
                                     }
                                     else {
-                                        HitResult hitResult = Minecraft.getInstance().hitResult;
+                                        HitResult hitResult = minecraft.hitResult;
                                         if (hitResult != null && hitResult.getType() == HitResult.Type.ENTITY) {
                                             int entityId = ((EntityHitResult) hitResult).getEntity().getId();
                                             PacketHandler.INSTANCE.sendToServer(
-                                                    new ServerboundComicallyLargeMalletAttackPacket(playerMalletCap.malletCharge, String.valueOf(entityId)));
+                                                    new ServerboundComicallyLargeMalletAttackPacket(playerMalletCap.malletCharge, String.valueOf(entityId), rightMouse));
                                         }
                                     }
 
@@ -206,7 +348,7 @@ public class ModEvents {
 
                             if (holdingMallet) {
                                 // When the charge is 0, the attack indicator will not appear
-                                localPlayer.attackStrengthTicker = CHARGE_TIME;
+                                localPlayer.attackStrengthTicker = chargeTime;
 
                                 // third person idle animation
                                 var animation = getAnimation(localPlayer);
@@ -229,7 +371,7 @@ public class ModEvents {
                         }
                         else {
                             // third person charge animation
-                            if (playerMalletCap.malletCharge < CHARGE_TIME && !playerMalletCap.thirdPersonMalletWasCharging) {
+                            if (playerMalletCap.malletCharge < chargeTime && !playerMalletCap.thirdPersonMalletWasCharging) {
                                 playerMalletCap.thirdPersonMalletAnimWasIdle = false;
                                 var animation = getAnimation(localPlayer);
                                 if (animation != null) {
@@ -241,7 +383,7 @@ public class ModEvents {
                                             ByteBuf animBytes = convertToBytes(modifiedAnimation1);
                                             PacketHandler.INSTANCE.sendToServer(
                                                     new ServerboundComicallyLargeMalletAnimationPacket(
-                                                            1.0f * CHARGE_TIME / (CHARGE_TIME - playerMalletCap.malletCharge),
+                                                            1.0f * BASE_CHARGE_TIME / (chargeTime - playerMalletCap.malletCharge),
                                                             mirrored, true, animBytes
                                                     )
                                             );
@@ -250,7 +392,7 @@ public class ModEvents {
                                     }
                                 }
                             }
-                            else if (playerMalletCap.malletCharge == CHARGE_TIME && !playerMalletCap.thirdPersonMalletAnimWasPaused) {
+                            else if (playerMalletCap.malletCharge == chargeTime && !playerMalletCap.thirdPersonMalletAnimWasPaused) {
                                 var animation = getAnimation(localPlayer);
                                 if (animation != null) {
                                     PacketHandler.INSTANCE.sendToServer(
@@ -259,7 +401,7 @@ public class ModEvents {
                                 playerMalletCap.thirdPersonMalletAnimWasPaused = true;
                             }
 
-                            playerMalletCap.malletCharge = Math.min(CHARGE_TIME, playerMalletCap.malletCharge + 1);
+                            playerMalletCap.malletCharge = Math.min(chargeTime, playerMalletCap.malletCharge + 1);
                             localPlayer.attackStrengthTicker = playerMalletCap.malletCharge;
                         }
 
@@ -297,9 +439,8 @@ public class ModEvents {
         private static StringBuilder getHitEntities(LocalPlayer localPlayer, double radius) {
             Vec3 vec3 = localPlayer.getViewVector(1).scale(radius).add(localPlayer.getEyePosition());
             AABB aabb = new AABB(vec3.x - radius, vec3.y - radius, vec3.z - radius, vec3.x + radius, vec3.y + radius, vec3.z + radius);
-            List<Entity> list = localPlayer.level.getEntities(localPlayer, aabb);
             StringBuilder listString = new StringBuilder();
-            for (Entity entity : list) {
+            for (Entity entity : localPlayer.level.getEntities(localPlayer, aabb)) {
                 listString.append(entity.getId()).append(",");
             }
             return listString;

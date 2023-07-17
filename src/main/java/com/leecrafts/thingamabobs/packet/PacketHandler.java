@@ -27,6 +27,9 @@ public class PacketHandler {
         INSTANCE.messageBuilder(ServerboundComicallyLargeMalletAnimationPacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(ServerboundComicallyLargeMalletAnimationPacket::encode).decoder(ServerboundComicallyLargeMalletAnimationPacket::new)
                 .consumerMainThread(ServerboundComicallyLargeMalletAnimationPacket::handle).add();
+        INSTANCE.messageBuilder(ServerboundComicallyLargeMalletItemPacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerboundComicallyLargeMalletItemPacket::encode).decoder(ServerboundComicallyLargeMalletItemPacket::new)
+                .consumerMainThread(ServerboundComicallyLargeMalletItemPacket::handle).add();
         INSTANCE.messageBuilder(ClientboundComicallyLargeMalletAnimationPacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(ClientboundComicallyLargeMalletAnimationPacket::encode).decoder(ClientboundComicallyLargeMalletAnimationPacket::new)
                 .consumerMainThread(ClientboundComicallyLargeMalletAnimationPacket::handle).add();

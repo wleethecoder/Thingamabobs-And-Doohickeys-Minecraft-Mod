@@ -6,9 +6,13 @@
   "item.thingamabobs.mallet": "Comically Large Mallet",
   "item.thingamabobs.punchy_glove": "Spring-Loaded Boxing Glove",
   "item.thingamabobs.punchy_glove.charged": "(Charged)",
+  "item.thingamabobs.explosive_pumpkin_pie": "Explosive Pumpkin Pie",
 
   "entity.thingamabobs.punchy_glove_projectile": "Boxing Glove",
+  "entity.thingamabobs.explosive_pumpkin_pie": "Explosive Pumpkin Pie",
 
+  "enchantment.thingamabobs.wham": "Wham",
+  "enchantment.thingamabobs.handling": "Handling",
   "enchantment.thingamabobs.boing": "Boing",
   "enchantment.thingamabobs.sticky": "Sticky"
 }
