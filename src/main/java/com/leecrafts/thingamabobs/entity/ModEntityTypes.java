@@ -2,6 +2,7 @@ package com.leecrafts.thingamabobs.entity;
 
 import com.leecrafts.thingamabobs.ThingamabobsAndDoohickeys;
 import com.leecrafts.thingamabobs.entity.custom.BoxingGloveEntity;
+import com.leecrafts.thingamabobs.entity.custom.ExplosiveCakeEntity;
 import com.leecrafts.thingamabobs.entity.custom.ExplosivePumpkinPieEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -27,6 +28,12 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.of((EntityType.EntityFactory<ExplosivePumpkinPieEntity>) ExplosivePumpkinPieEntity::new, MobCategory.MISC)
                             .sized(0.25f, 0.25f)
                             .build(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "explosive_pumpkin_pie").toString()));
+
+    public static final RegistryObject<EntityType<ExplosiveCakeEntity>> EXPLOSIVE_CAKE =
+            ENTITY_TYPES.register("explosive_cake",
+                    () -> EntityType.Builder.of((EntityType.EntityFactory<ExplosiveCakeEntity>) ExplosiveCakeEntity::new, MobCategory.MISC)
+                            .sized(0.25f, 0.25f)
+                            .build(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "explosive_cake").toString()));
 
     public static void register(IEventBus eventBus) {
         ENTITY_TYPES.register(eventBus);

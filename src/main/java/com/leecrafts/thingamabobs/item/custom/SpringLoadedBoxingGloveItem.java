@@ -70,19 +70,19 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level pLevel, @NotNull Player pPlayer, @NotNull InteractionHand pUsedHand) {
         ItemStack itemStack = pPlayer.getItemInHand(pUsedHand);
-        System.out.println("clientSide: " + pLevel.isClientSide + "; boing: " + isBoing(itemStack) + "; charged: " + isCharged(itemStack));
+//        System.out.println("clientSide: " + pLevel.isClientSide + "; boing: " + isBoing(itemStack) + "; charged: " + isCharged(itemStack));
         if (isBoing(itemStack)) {
             return InteractionResultHolder.fail(itemStack);
         }
         if (isCharged(itemStack)) {
-            System.out.println("get walloped!");
+//            System.out.println("get walloped!");
             setCharged(itemStack, false);
             setBoing(itemStack, true);
             shootProjectile(pLevel, pPlayer, pUsedHand, itemStack);
             this.playAnimation(pLevel, pPlayer, itemStack, "boing");
         }
         else {
-            System.out.println("start using item");
+//            System.out.println("start using item");
             pPlayer.startUsingItem(pUsedHand);
             this.playAnimation(pLevel, pPlayer, itemStack, "charge");
         }
@@ -91,9 +91,9 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
 
     @Override
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull LivingEntity pLivingEntity, int pTimeLeft) {
-        System.out.println("clientside: " + pLevel.isClientSide + "; released. time charged (in ticks): " + (this.getUseDuration(pStack) - pTimeLeft));
+//        System.out.println("clientside: " + pLevel.isClientSide + "; released. time charged (in ticks): " + (this.getUseDuration(pStack) - pTimeLeft));
         if (1.0 * (this.getUseDuration(pStack) - pTimeLeft) / CrossbowItem.getChargeDuration(pStack) >= 1 && !isCharged(pStack)) {
-            System.out.println("\tpunchy glove is now charged");
+//            System.out.println("\tpunchy glove is now charged");
             setCharged(pStack, true);
 
             // In case the client and server do not sync well.

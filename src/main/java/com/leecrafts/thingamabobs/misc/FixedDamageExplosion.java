@@ -6,6 +6,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.enchantment.ProtectionEnchantment;
@@ -97,7 +98,7 @@ public class FixedDamageExplosion extends Explosion {
         Vec3 vec3 = new Vec3(this.x, this.y, this.z);
 
         for (Entity entity : list) {
-            if (!entity.ignoreExplosion()) {
+            if (!entity.ignoreExplosion() && !(entity instanceof ItemEntity)) {
                 double d12 = Math.sqrt(entity.distanceToSqr(vec3)) / (double) f2;
                 if (d12 <= 1.0D) {
                     double d5 = entity.getX() - this.x;

@@ -7,9 +7,11 @@
   "item.thingamabobs.punchy_glove": "Spring-Loaded Boxing Glove",
   "item.thingamabobs.punchy_glove.charged": "(Charged)",
   "item.thingamabobs.explosive_pumpkin_pie": "Explosive Pumpkin Pie",
+  "item.thingamabobs.explosive_cake": "Explosive Cake",
 
   "entity.thingamabobs.punchy_glove_projectile": "Boxing Glove",
   "entity.thingamabobs.explosive_pumpkin_pie": "Explosive Pumpkin Pie",
+  "entity.thingamabobs.explosive_cake": "Explosive Cake",
 
   "enchantment.thingamabobs.wham": "Wham",
   "enchantment.thingamabobs.handling": "Handling",

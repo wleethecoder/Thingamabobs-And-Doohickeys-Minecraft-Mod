@@ -3,6 +3,7 @@ package com.leecrafts.thingamabobs;
 import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.entity.ModEntityTypes;
 import com.leecrafts.thingamabobs.entity.client.BoxingGloveRenderer;
+import com.leecrafts.thingamabobs.entity.client.ExplosiveCakeRenderer;
 import com.leecrafts.thingamabobs.entity.client.ExplosivePumpkinPieRenderer;
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.packet.PacketHandler;
@@ -77,6 +78,7 @@ public class ThingamabobsAndDoohickeys
         {
             EntityRenderers.register(ModEntityTypes.BOXING_GLOVE.get(), BoxingGloveRenderer::new);
             EntityRenderers.register(ModEntityTypes.EXPLOSIVE_PUMPKIN_PIE.get(), ExplosivePumpkinPieRenderer::new);
+            EntityRenderers.register(ModEntityTypes.EXPLOSIVE_CAKE.get(), ExplosiveCakeRenderer::new);
 
             PlayerAnimationFactory.ANIMATION_DATA_FACTORY.registerFactory(new ResourceLocation(MODID, "animation"), 42, (player) -> new ModifierLayer<>());
         }
