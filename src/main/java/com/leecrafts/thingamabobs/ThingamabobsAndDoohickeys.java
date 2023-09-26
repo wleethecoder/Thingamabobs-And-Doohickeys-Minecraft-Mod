@@ -58,16 +58,22 @@ public class ThingamabobsAndDoohickeys
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
-//        // Register the item to a creative tab
-//        modEventBus.addListener(this::addCreative);
+        // Register the item to a creative tab
+        modEventBus.addListener(this::addCreative);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(PacketHandler::init);
     }
 
-//    private void addCreative(CreativeModeTabEvent.BuildContents event) {
-//    }
+    private void addCreative(CreativeModeTabEvent.BuildContents event) {
+        if (event.getTab() == CreativeModeTabs.COMBAT) {
+            event.accept(ModItems.COMICALLY_LARGE_MALLET_ITEM);
+            event.accept(ModItems.SPRING_LOADED_BOXING_GLOVE_ITEM);
+            event.accept(ModItems.EXPLOSIVE_PUMPKIN_PIE_ITEM);
+            event.accept(ModItems.EXPLOSIVE_CAKE_ITEM);
+        }
+    }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
