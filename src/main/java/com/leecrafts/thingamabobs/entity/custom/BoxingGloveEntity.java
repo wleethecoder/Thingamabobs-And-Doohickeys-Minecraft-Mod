@@ -6,6 +6,7 @@ import com.leecrafts.thingamabobs.entity.ModEntityTypes;
 import com.leecrafts.thingamabobs.item.custom.SpringLoadedBoxingGloveItem;
 import com.leecrafts.thingamabobs.sound.ModSounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -478,6 +479,34 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
 
     private boolean isFar(Entity shooter) {
         return this.distanceTo(shooter) > 1.1 * this.getBaseMaxDistance();
+    }
+
+    @Override
+    protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        CompoundTag compoundTag = new CompoundTag();
+        this.getWeapon().save(compoundTag);
+        pCompound.put("Weapon", compoundTag);
+        pCompound.putFloat("Damage", this.getDamage());
+        pCompound.putFloat("InitialSpeed", this.getInitialSpeed());
+        pCompound.putFloat("BaseMaximumDistance", this.getBaseMaxDistance());
+        pCompound.putFloat("Acceleration", this.getAcceleration());
+        pCompound.putBoolean("IsDeflected", this.isDeflected());
+        pCompound.putInt("QuickChargeLevel", this.getQuickChargeLevel());
+        pCompound.putBoolean("IsSticky", this.isSticky());
+    }
+
+    @Override
+    protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setWeapon(ItemStack.of(pCompound.getCompound("Weapon")));
+        this.setDamage(pCompound.getFloat("Damage"));
+        this.setInitialSpeed(pCompound.getFloat("InitialSpeed"));
+        this.setBaseMaxDistance(pCompound.getFloat("BaseMaximumDistance"));
+        this.setAcceleration(pCompound.getFloat("Acceleration"));
+        this.setDeflected(pCompound.getBoolean("IsDeflected"));
+        this.setQuickChargeLevel(pCompound.getInt("QuickChargeLevel"));
+        this.setSticky(pCompound.getBoolean("IsSticky"));
     }
 
     private float getReboundAcceleration() {

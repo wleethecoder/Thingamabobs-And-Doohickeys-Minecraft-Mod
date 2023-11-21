@@ -10,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundExplodePacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -70,8 +71,6 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
 
     @Override
     public void tick() {
-        System.out.println("clientside? " + this.level.isClientSide);
-        System.out.println("id: " + this.getId() + "; landmine:" + this.isLandmine() + "; landminePos" + this.getLandminePos());
         if (this.isLandmine()) {
             if (this.level.getBlockState(this.getLandminePos()).getMaterial().isSolid()) {
                 this.updateLandmineRot();
@@ -388,6 +387,36 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
 
     public void setLandminePos(BlockPos blockPos) {
         this.entityData.set(DATA_LANDMINE_POS, blockPos);
+    }
+
+    @Override
+    public void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("StickToEntityTimestamp", this.getStickToEntityTimestamp());
+        pCompound.putFloat("StickToEntityAngle", this.getStickToEntityAngle());
+        pCompound.putFloat("StickToEntityYOffset", this.getStickToEntityYOffset());
+        pCompound.putBoolean("IsLandmine", this.isLandmine());
+        pCompound.putFloat("LandmineXRot", this.getLandmineXRot());
+        pCompound.putFloat("LandmineYRot", this.getLandmineYRot());
+        pCompound.putBoolean("WillExplode", this.willExplode());
+        BlockPos blockPos = this.getLandminePos();
+        pCompound.putIntArray("LandminePos", new int[] {blockPos.getX(), blockPos.getY(), blockPos.getZ()});
+    }
+
+    @Override
+    public void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setStickToEntityTimestamp(pCompound.getInt("StickToEntityTimestamp"));
+        this.setStickToEntityAngle(pCompound.getFloat("StickToEntityAngle"));
+        this.setStickToEntityYOffset(pCompound.getFloat("StickToEntityYOffset"));
+        this.setLandmine(pCompound.getBoolean("IsLandmine"));
+        this.setLandmineXRot(pCompound.getFloat("LandmineXRot"));
+        this.setLandmineYRot(pCompound.getFloat("LandmineYRot"));
+        this.setWillExplode(pCompound.getBoolean("WillExplode"));
+        int[] landminePos = pCompound.getIntArray("LandminePos");
+        if (landminePos.length == 3) {
+            this.setLandminePos(new BlockPos(landminePos[0], landminePos[1], landminePos[2]));
+        }
     }
 
     @Override
