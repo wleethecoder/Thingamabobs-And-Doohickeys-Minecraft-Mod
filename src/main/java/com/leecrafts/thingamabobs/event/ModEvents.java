@@ -40,6 +40,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -114,60 +115,25 @@ public class ModEvents {
             }
         }
 
-//        @SubscribeEvent
-//        public static void livingEquipmentChangeEvent(LivingEquipmentChangeEvent event) {
-//            if (event.getEntity() instanceof Player player &&
-//                    !player.level.isClientSide &&
-//                    player.getMainHandItem().getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get()) {
-//                EquipmentSlot equipmentSlot = event.getSlot();
-//                if (equipmentSlot == EquipmentSlot.OFFHAND || equipmentSlot == EquipmentSlot.MAINHAND) {
-//                    ItemStack offhandItem = player.getOffhandItem().copy();
-//                    player.getInventory().setItem(Inventory.SLOT_OFFHAND, ItemStack.EMPTY);
-//                    ItemEntity itemEntity = player.drop(offhandItem, true);
-////                    if (itemEntity != null) {
-////                        itemEntity.setPickUpDelay(0);
-////                    }
-//                }
-//            }
-//        }
-
-//        // TODO fix server-client networking issues
-//        // TODO fix stackable items disappearing
-//        // TODO maybe add capability that measures how much time item is in offhand slot while mallet is in main hand slot?
-//        @SubscribeEvent
-//        public static void holdingMalletTick(TickEvent.PlayerTickEvent event) {
-//            if (event.phase == TickEvent.Phase.END) {
-//                if (event.player.tickCount % 20 == 0) {
-//                    if (event.player instanceof ServerPlayer serverPlayer) {
-//                        ItemStack offhandItem = serverPlayer.getOffhandItem();
-//                        if (serverPlayer.getMainHandItem().getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get() &&
-//                                !offhandItem.isEmpty()) {
-////                        ItemStack offhandItem1 = offhandItem.copy();
-////                        offhandItem.shrink(offhandItem.getCount());
-////                        serverPlayer.getInventory().placeItemBackInInventory(offhandItem);
-//                            Inventory inventory = serverPlayer.getInventory();
-//                            int i = inventory.getFreeSlot();
-//                            while (true) {
-//                                if (i != -1) {
-//                                    int j = offhandItem.getMaxStackSize() - inventory.getItem(i).getCount();
-//                                    if (inventory.add(i, offhandItem.split(j))) {
-//                                        serverPlayer.connection.send(
-//                                                new ClientboundContainerSetSlotPacket(-2, 0, i, inventory.getItem(i)));
-//                                    }
-//                                    continue;
-//                                }
-//                                else {
-//                                    inventory.player.drop(offhandItem, false);
-//                                }
-//                                return;
-//                            }
-//
-////                        PacketHandler.INSTANCE.sendToServer(new ServerboundComicallyLargeMalletItemPacket(offhandItem2));
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        // The comically large mallet is a two-handed weapon.
+        // When the (non-creative) player is holding a comically large mallet on their main hand, they are not allowed
+        // to equip any item in the offhand.
+        @SubscribeEvent
+        public static void livingEquipmentChangeEvent(LivingEquipmentChangeEvent event) {
+            if (event.getEntity() instanceof Player player &&
+                    !player.isCreative() &&
+                    !player.level.isClientSide &&
+                    player.getMainHandItem().getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get()) {
+                ItemStack offhandItem = player.getOffhandItem();
+                if (!offhandItem.isEmpty()) {
+                    ItemEntity itemEntity = player.drop(offhandItem.copy(), true);
+                    offhandItem.shrink(offhandItem.getCount());
+                    if (itemEntity != null) {
+                        itemEntity.setPickUpDelay(0);
+                    }
+                }
+            }
+        }
 
         // Boxing glove projectiles hit by an explosion are deflected towards the shooter
         @SubscribeEvent

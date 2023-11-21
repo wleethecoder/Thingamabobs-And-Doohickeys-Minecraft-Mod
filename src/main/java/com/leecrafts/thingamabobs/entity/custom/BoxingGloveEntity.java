@@ -100,7 +100,7 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         this.shoot(vector3f.x(), vector3f.y(), vector3f.z(), speed, 0.0f);
         this.setInitialSpeed(speed);
         this.setAcceleration(-speed / TIME_BEFORE_REBOUND);
-        System.out.println("shooterSpeed: " + shooterSpeed + "; speed: " + speed + "; maxDistance: " + maxDistance + "; acceleration: " + this.getAcceleration());
+//        System.out.println("shooterSpeed: " + shooterSpeed + "; speed: " + speed + "; maxDistance: " + maxDistance + "; acceleration: " + this.getAcceleration());
     }
 
     @Override
@@ -205,13 +205,10 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                     // Due to a bug, the shooter will occasionally not be hit by the rebounding projectile.
                     // Therefore, the lines below will check if the rebounding projectile is close enough to the shooter.
                     if (vec33.length() < vec3.length()) {
-                        System.out.println("manually calling onHitEntity");
                         this.onHitEntity(new EntityHitResult(shooter));
                     }
 
-                    // TODO tweak
                     if (this.tickCount >= TIME_BEFORE_REBOUND * 2 || this.isFar(shooter)) {
-                        System.out.println("speeding up");
                         this.setAcceleration(this.getAcceleration() + 0.05f);
                     }
                     vec3 = vec33.normalize().scale(
@@ -228,7 +225,6 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         }
         else {
             if (this.tickCount >= TIME_BEFORE_REBOUND || this.isDeflected()) {
-                System.out.println("rebounding after being stuck on a block (speed was " + this.getDeltaMovement().length() + ")");
                 this.setAcceleration(this.getReboundAcceleration());
                 this.inGround = false;
                 this.isRebounding = true;
