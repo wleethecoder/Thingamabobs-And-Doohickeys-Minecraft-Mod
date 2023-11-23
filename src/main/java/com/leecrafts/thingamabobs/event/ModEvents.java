@@ -8,7 +8,6 @@ import com.leecrafts.thingamabobs.capability.player.PlayerMalletCap;
 import com.leecrafts.thingamabobs.capability.player.PlayerMalletCapProvider;
 import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.enchantment.custom.MalletDamageEnchantment;
-import com.leecrafts.thingamabobs.entity.custom.AbstractExplosivePastryEntity;
 import com.leecrafts.thingamabobs.entity.custom.BoxingGloveEntity;
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.item.custom.ComicallyLargeMalletItem;
@@ -28,22 +27,15 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -55,14 +47,11 @@ import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
 import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 import java.nio.ByteBuffer;
 
@@ -110,9 +99,10 @@ public class ModEvents {
             }
         }
 
-        // Mobs (not players) attacking with the mallet are too strong when the damage is scaled with the game's difficulty.
+        // Mobs (not players) attacking with the mallet are too strong, especially when the damage is scaled with the game's difficulty.
         // I cannot easily adjust the hard-coded attack speed of a mob, so I just decrease the amount of damage.
         // Since mobs attack once per second, I made the damage the same amount as the DPS of the mallet.
+        // Damage is not scaled by difficulty.
         @SubscribeEvent
         public static void mobAttackWithMallet(LivingHurtEvent event) {
             if (event.getSource().getEntity() instanceof LivingEntity attacker &&

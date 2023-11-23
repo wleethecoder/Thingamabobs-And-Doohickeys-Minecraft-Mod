@@ -2,6 +2,7 @@ package com.leecrafts.thingamabobs.packet;
 
 import com.leecrafts.thingamabobs.sound.ModSounds;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
@@ -10,6 +11,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.boss.EnderDragonPart;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;
@@ -47,7 +50,7 @@ public class ServerboundComicallyLargeMalletAttackPacket {
                 boolean anythingHit = false;
                 int numberHitLiving = 0;
                 for (String str : list) {
-                    Entity entity = sender.level.getEntity(Integer.parseInt(str));
+                    Entity entity = ((ServerLevel) sender.level).getEntityOrPart(Integer.parseInt(str));
                     if (entity != null) {
                         sender.attackStrengthTicker = this.strength;
                         if (!sender.isPassengerOfSameVehicle(entity) &&
