@@ -195,6 +195,11 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
         return 14;
     }
 
+    @Override
+    public boolean isValidRepairItem(@NotNull ItemStack pStack, @NotNull ItemStack pRepairCandidate) {
+        return pRepairCandidate.getItem() == this || super.isValidRepairItem(pStack, pRepairCandidate);
+    }
+
     public static float getBaseMaxProjectileDistance(ItemStack itemStack) {
         return 10.0f + itemStack.getEnchantmentLevel(ModEnchantments.BOING.get()) * 3.0f;
     }

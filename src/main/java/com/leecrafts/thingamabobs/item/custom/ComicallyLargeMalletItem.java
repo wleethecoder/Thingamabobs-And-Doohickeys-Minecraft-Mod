@@ -21,6 +21,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Vanishable;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -118,6 +119,11 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return 1;
+    }
+
+    @Override
+    public boolean isValidRepairItem(@NotNull ItemStack pStack, @NotNull ItemStack pRepairCandidate) {
+        return pRepairCandidate.getItem() == Items.IRON_BLOCK || super.isValidRepairItem(pStack, pRepairCandidate);
     }
 
     @Override
