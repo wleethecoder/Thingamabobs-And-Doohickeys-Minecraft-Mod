@@ -8,6 +8,8 @@ import net.minecraft.world.item.enchantment.Enchantment;
 
 public class MalletDamageEnchantment extends Enchantment {
 
+    public static final float DAMAGE_MULTIPLIER = 2.5f;
+
     public MalletDamageEnchantment(Rarity pRarity, EquipmentSlot... pApplicableSlots) {
         super(pRarity, ModEnchantments.MALLET_ENCHANTMENT_CATEGORY, pApplicableSlots);
     }
@@ -29,7 +31,7 @@ public class MalletDamageEnchantment extends Enchantment {
 
     @Override
     public float getDamageBonus(int level, MobType mobType, ItemStack enchantedItem) {
-        return 2.0f * level;
+        return DAMAGE_MULTIPLIER * level;
     }
 
 }

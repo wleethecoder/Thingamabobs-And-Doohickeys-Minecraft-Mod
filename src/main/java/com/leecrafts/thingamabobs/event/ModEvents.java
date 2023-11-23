@@ -6,6 +6,8 @@ import com.leecrafts.thingamabobs.capability.entity.*;
 import com.leecrafts.thingamabobs.capability.player.IPlayerMalletCap;
 import com.leecrafts.thingamabobs.capability.player.PlayerMalletCap;
 import com.leecrafts.thingamabobs.capability.player.PlayerMalletCapProvider;
+import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
+import com.leecrafts.thingamabobs.enchantment.custom.MalletDamageEnchantment;
 import com.leecrafts.thingamabobs.entity.custom.AbstractExplosivePastryEntity;
 import com.leecrafts.thingamabobs.entity.custom.BoxingGloveEntity;
 import com.leecrafts.thingamabobs.item.ModItems;
@@ -31,6 +33,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -55,6 +58,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
 import net.minecraftforge.event.entity.living.*;
+import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -98,10 +102,32 @@ public class ModEvents {
             }
         }
 
+        // TODO delete at very end
         @SubscribeEvent
         public static void damageTest(LivingDamageEvent event) {
             if (!event.getEntity().level.isClientSide) {
                 System.out.println(event.getAmount() + " damage done to " + event.getEntity().getType().toShortString() + " via " + event.getSource().getMsgId());
+            }
+        }
+
+        // Mobs (not players) attacking with the mallet are too strong when the damage is scaled with the game's difficulty.
+        // I cannot easily adjust the hard-coded attack speed of a mob, so I just decrease the amount of damage.
+        // Since mobs attack once per second, I made the damage the same amount as the DPS of the mallet.
+        @SubscribeEvent
+        public static void mobAttackWithMallet(LivingHurtEvent event) {
+            if (event.getSource().getEntity() instanceof LivingEntity attacker &&
+                    !attacker.level.isClientSide &&
+                    !(attacker instanceof Player)) {
+                ItemStack mainHand = attacker.getMainHandItem();
+                if (mainHand.getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get()) {
+                    double numerator = BASE_DAMAGE +
+                            MalletDamageEnchantment.DAMAGE_MULTIPLIER * mainHand.getEnchantmentLevel(ModEnchantments.WHAM.get());
+                    double denominator = getChargeTime(mainHand) / (1.0 * TICKS_PER_SECOND);
+                    double attackDamage = attacker.getAttributeBaseValue(Attributes.ATTACK_DAMAGE) - 1 +
+                            (attacker.hasEffect(MobEffects.DAMAGE_BOOST) ? 3 * (attacker.getEffect(MobEffects.DAMAGE_BOOST).getAmplifier() + 1) : 0);
+                    float DPS = (float) ((attackDamage + numerator) / denominator);
+                    event.setAmount(DPS);
+                }
             }
         }
 
@@ -132,6 +158,16 @@ public class ModEvents {
                         itemEntity.setPickUpDelay(0);
                     }
                 }
+            }
+        }
+
+        // Mallets damage entities through shields, disables shields, and damages shields.
+        @SubscribeEvent
+        public static void shieldBlockEvent(ShieldBlockEvent event) {
+            if (!event.getEntity().level.isClientSide &&
+                    event.getDamageSource().getEntity() instanceof LivingEntity attacker &&
+                    attacker.getMainHandItem().getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get()) {
+                event.setBlockedDamage(0f);
             }
         }
 

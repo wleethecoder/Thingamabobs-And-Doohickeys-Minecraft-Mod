@@ -120,6 +120,11 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
         return 1;
     }
 
+    @Override
+    public boolean canDisableShield(ItemStack stack, ItemStack shield, LivingEntity entity, LivingEntity attacker) {
+        return true;
+    }
+
     public static int getChargeTime(ItemStack itemStack) {
         return (int) ((1.75 - 0.125 * itemStack.getEnchantmentLevel(ModEnchantments.HANDLING.get())) * TICKS_PER_SECOND);
     }
