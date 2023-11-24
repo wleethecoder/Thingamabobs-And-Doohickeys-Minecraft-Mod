@@ -1,6 +1,7 @@
 package com.leecrafts.thingamabobs.entity.custom;
 
 import com.google.common.collect.Lists;
+import com.leecrafts.thingamabobs.damage.ModDamageSources;
 import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.entity.ModEntityTypes;
 import com.leecrafts.thingamabobs.item.custom.SpringLoadedBoxingGloveItem;
@@ -255,13 +256,15 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         Entity target = pResult.getEntity();
         // TODO armor stands are unaffected because the damageSource is not a player attack
         // But this also needs to be a mobProjectile so that EnderMen can dodge it
-        DamageSource damageSource;
-        if (shooter instanceof Player && target instanceof ArmorStand) {
-            damageSource = this.damageSources().playerAttack((Player) shooter);
-        }
-        else {
-            damageSource = this.damageSources().mobProjectile(this, shooter instanceof LivingEntity ? (LivingEntity) shooter : null);
-        }
+//        DamageSource damageSource;
+//        if (shooter instanceof Player && target instanceof ArmorStand) {
+//            damageSource = this.damageSources().playerAttack((Player) shooter);
+//        }
+//        else {
+//            damageSource = this.damageSources().mobProjectile(this, shooter instanceof LivingEntity ? (LivingEntity) shooter : null);
+//        }
+        DamageSource damageSource = new ModDamageSources(
+                this.level.registryAccess()).wallop(this, shooter instanceof LivingEntity ? (LivingEntity) shooter : null);
         boolean isEnderMan = target.getType() == EntityType.ENDERMAN;
         if (this.isOnFire() && !isEnderMan) {
             target.setSecondsOnFire(5);

@@ -16,5 +16,10 @@
   "enchantment.thingamabobs.wham": "Wham",
   "enchantment.thingamabobs.handling": "Handling",
   "enchantment.thingamabobs.boing": "Boing",
-  "enchantment.thingamabobs.sticky": "Sticky"
+  "enchantment.thingamabobs.sticky": "Sticky",
+
+  "death.attack.wham": "%1$s was squashed into a pancake by %2$s",
+  "death.attack.wham.item": "%1$s was squashed into a pancake by %2$s using %3$s",
+  "death.attack.wallop": "%1$s was walloped into submission by %2$s",
+  "death.attack.wallop.item": "%1$s was walloped into submission by %2$s using %3$s"
 }
