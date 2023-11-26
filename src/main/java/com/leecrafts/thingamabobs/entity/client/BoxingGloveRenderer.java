@@ -37,9 +37,7 @@ public class BoxingGloveRenderer extends GeoEntityRenderer<BoxingGloveEntity> {
     @Override
     public void render(@NotNull BoxingGloveEntity entity, float entityYaw, float partialTick, @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight) {
         Entity shooter = entity.getOwner();
-        if (shooter != null) {
-            renderSpring(entity, shooter, partialTick, poseStack, bufferSource, packedLight);
-        }
+        renderSpring(entity, shooter, partialTick, poseStack, bufferSource, packedLight);
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
@@ -47,9 +45,22 @@ public class BoxingGloveRenderer extends GeoEntityRenderer<BoxingGloveEntity> {
     // TODO decrease width of spring
     public static void renderSpring(BoxingGloveEntity entity, Entity shooter, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         float gloveHalfWidth = entity.getBbWidth() / 2;
-        float xDist = (float) (shooter.getX() - Mth.lerp(partialTick, entity.xo, entity.getX()));
-        float yDist = (float) (shooter.getY(2.0/3) - Mth.lerp(partialTick, entity.yo, entity.getY()) - gloveHalfWidth);
-        float zDist = (float) (shooter.getZ() - Mth.lerp(partialTick, entity.zo, entity.getZ()));
+        double x;
+        double y;
+        double z;
+        if (shooter != null) {
+            x = shooter.getX();
+            y = shooter.getY(2.0/3);
+            z = shooter.getZ();
+        }
+        else {
+            x = entity.getInitialPosX();
+            y = entity.getInitialPosY();
+            z = entity.getInitialPosZ();
+        }
+        float xDist = (float) (x - Mth.lerp(partialTick, entity.xo, entity.getX()));
+        float yDist = (float) (y - Mth.lerp(partialTick, entity.yo, entity.getY()) - gloveHalfWidth);
+        float zDist = (float) (z - Mth.lerp(partialTick, entity.zo, entity.getZ()));
 //        EnderDragonRenderer.renderCrystalBeams(xDist, yDist, zDist, partialTick, entity.tickCount, poseStack, bufferSource, packedLight);
         float f = Mth.sqrt(xDist * xDist + zDist * zDist);
         float f1 = Mth.sqrt(xDist * xDist + yDist * yDist + zDist * zDist);

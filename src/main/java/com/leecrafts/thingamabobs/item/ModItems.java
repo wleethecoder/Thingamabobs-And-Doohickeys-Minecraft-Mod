@@ -6,7 +6,11 @@ import com.leecrafts.thingamabobs.item.custom.ExplosiveCakeItem;
 import com.leecrafts.thingamabobs.item.custom.ExplosivePumpkinPieItem;
 import com.leecrafts.thingamabobs.item.custom.SpringLoadedBoxingGloveItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -30,6 +34,19 @@ public class ModItems {
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
+    }
+
+    @Mod.EventBusSubscriber(modid = ThingamabobsAndDoohickeys.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+    public static class ModItemsEvents {
+
+        @SubscribeEvent
+        public static void commonSetup(FMLCommonSetupEvent event) {
+            event.enqueueWork(() -> {
+                DispenserBlock.registerBehavior(ModItems.SPRING_LOADED_BOXING_GLOVE_ITEM.get(),
+                        new SpringLoadedBoxingGloveItem.SpringLoadedBoxingGloveDispenseItemBehavior());
+            });
+        }
+
     }
 
 }

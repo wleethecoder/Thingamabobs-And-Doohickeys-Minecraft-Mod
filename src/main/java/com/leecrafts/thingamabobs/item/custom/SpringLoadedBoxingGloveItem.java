@@ -6,10 +6,16 @@ import com.leecrafts.thingamabobs.item.client.SpringLoadedBoxingGloveRenderer;
 import com.leecrafts.thingamabobs.packet.PacketHandler;
 import com.leecrafts.thingamabobs.packet.ServerboundSpringLoadedBoxingGloveAnimationPacket;
 import com.leecrafts.thingamabobs.packet.ServerboundSpringLoadedBoxingGloveAttackPacket;
+import com.leecrafts.thingamabobs.sound.ModSounds;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.BlockSource;
+import net.minecraft.core.Direction;
+import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
+import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -22,6 +28,8 @@ import net.minecraft.world.item.Vanishable;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.common.extensions.IForgeItem;
@@ -130,6 +138,16 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
         compoundTag.putBoolean("Boing", isBoing);
     }
 
+    public static boolean isBoingFromDispenser(ItemStack itemStack) {
+        CompoundTag compoundTag = itemStack.getTag();
+        return compoundTag != null && compoundTag.getBoolean("BoingFromDispenser");
+    }
+
+    public static void setBoingFromDispenser(ItemStack itemStack, boolean isBoingFromDispenser) {
+        CompoundTag compoundTag = itemStack.getOrCreateTag();
+        compoundTag.putBoolean("BoingFromDispenser", isBoingFromDispenser);
+    }
+
     // Even though pTimeLeft is not always the same server and client side, shootProjectile() sends a packet.
     // Therefore, there are no syncing issues.
     private static void shootProjectile(Level level, LivingEntity shooter, InteractionHand interactionHand, ItemStack itemStack) {
@@ -169,7 +187,7 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
         if (pEntity.tickCount % 20 == 0 &&
                 pIsSelected &&
                 isBoing(pStack) &&
-                pLevel.getEntitiesOfClass(BoxingGloveEntity.class, pEntity.getBoundingBox().inflate(40)).size() == 0) {
+                pLevel.getEntitiesOfClass(BoxingGloveEntity.class, pEntity.getBoundingBox().inflate(40)).isEmpty()) {
             resetState(pLevel, pEntity, pStack);
         }
 
@@ -207,6 +225,7 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
     public static void resetState(Level level, Entity shooter, ItemStack itemStack) {
         if (itemStack != null && itemStack.getItem() instanceof SpringLoadedBoxingGloveItem item) {
             setBoing(itemStack, false);
+            setBoingFromDispenser(itemStack, false);
             if (shooter != null) {
                 item.playAnimation(level, shooter, itemStack, "idle");
             }
@@ -261,4 +280,40 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
             }
         });
     }
+
+    public static class SpringLoadedBoxingGloveDispenseItemBehavior extends OptionalDispenseItemBehavior {
+
+        public SpringLoadedBoxingGloveDispenseItemBehavior() {}
+
+        @Override
+        protected @NotNull ItemStack execute(@NotNull BlockSource pSource, @NotNull ItemStack pStack) {
+            ServerLevel serverLevel = pSource.getLevel();
+            Direction direction = pSource.getBlockState().getValue(DispenserBlock.FACING);
+            Vec3 vec3 = Vec3.atLowerCornerOf(direction.getNormal());
+            if (isBoingFromDispenser(pStack) &&
+                    !serverLevel.getEntitiesOfClass(BoxingGloveEntity.class, new AABB(pSource.getPos()).expandTowards(vec3.scale(30))).isEmpty()) {
+                this.setSuccess(false);
+            }
+            else {
+                BoxingGloveEntity boxingGloveEntity =
+                        new BoxingGloveEntity(serverLevel, pSource.x(), pSource.y(), pSource.z(), pStack, PROJECTILE_DAMAGE);
+                boxingGloveEntity.shoot(vec3, getBaseMaxProjectileDistance(pStack));
+                serverLevel.addFreshEntity(boxingGloveEntity);
+                serverLevel.playSound(
+                        null,
+                        pSource.x(),
+                        pSource.y(),
+                        pSource.z(),
+                        ModSounds.SPRING_LOADED_BOXING_GLOVE_BOING.get(),
+                        SoundSource.BLOCKS,
+                        1.0f,
+                        (serverLevel.getRandom().nextFloat() - serverLevel.getRandom().nextFloat()) * 0.2f + 1.0f);
+                setBoingFromDispenser(pStack, true);
+//            ((SpringLoadedBoxingGloveItem) pStack.getItem()).playAnimation(serverLevel, null, pStack, "boing");
+                this.setSuccess(true);
+            }
+            return pStack;
+        }
+    }
+
 }
