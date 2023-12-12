@@ -387,16 +387,12 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
 
     public void returnToShooter(Entity shooter) {
         if (shooter != null && this.isSticky()) {
-            Vec3 vec3 = shooter.position().add(this.position().subtract(shooter.position()).normalize().scale(1 + shooter.getBbWidth() / 2));
-//            for (LivingEntity livingEntity : this.stuckLivingEntities) {
-//                if (livingEntity != null && !livingEntity.isRemoved()) {
-//                    int dismountOffset = this.level.getBlockState(livingEntity.blockPosition()).getMaterial().isSolid() ? 1 : 0;
-//                    livingEntity.teleportTo(vec3.x, vec3.y + dismountOffset, vec3.z);
-//                }
-//            }
             for (Entity entity : this.getPassengers()) {
+                Vec3 vec3 = !(entity instanceof LivingEntity) ? shooter.position() :
+                        shooter.position().add(this.position().subtract(shooter.position()).normalize().scale(1 + shooter.getBbWidth() / 2));
+                int dismountOffset = this.level.getBlockState(entity.blockPosition()).getMaterial().isSolid() ? 1 : 0;
                 entity.stopRiding();
-                entity.teleportTo(shooter.getX(), shooter.getY(), shooter.getZ());
+                entity.teleportTo(vec3.x, vec3.y + dismountOffset, vec3.z);
             }
         }
         this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, ((this.random.nextFloat() - this.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
