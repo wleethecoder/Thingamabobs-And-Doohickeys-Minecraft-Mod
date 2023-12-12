@@ -99,9 +99,9 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
 
     @Override
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull LivingEntity pLivingEntity, int pTimeLeft) {
-//        System.out.println("clientside: " + pLevel.isClientSide + "; released. time charged (in ticks): " + (this.getUseDuration(pStack) - pTimeLeft));
-        if (1.0 * (this.getUseDuration(pStack) - pTimeLeft) / CrossbowItem.getChargeDuration(pStack) >= 1 && !isCharged(pStack)) {
-//            System.out.println("\tpunchy glove is now charged");
+        if (!pLevel.isClientSide &&
+                1.0 * (this.getUseDuration(pStack) - pTimeLeft) / CrossbowItem.getChargeDuration(pStack) >= 1 &&
+                !isCharged(pStack)) {
             setCharged(pStack, true);
 
             // In case the client and server do not sync well.

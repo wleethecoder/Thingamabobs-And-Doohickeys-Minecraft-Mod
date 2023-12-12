@@ -49,7 +49,6 @@ public class ComicallyLargeMalletItem extends Item implements Vanishable, IForge
     public static final UUID INCREASED_ATTACK_SPEED_UUID = UUID.fromString("4be2216f-e0d0-46d4-af5e-7d94533fc81d");
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this, true);
 
-    // TODO test on multiplayer server. is it good to have global variables in item class?
     private static final double EQUIP_X = 1;
     private static final double EQUIP_Y = -1.5;
     private static final double EQUIP_Z = -1;

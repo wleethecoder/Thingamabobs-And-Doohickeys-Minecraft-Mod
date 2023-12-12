@@ -27,14 +27,14 @@ public class EntityStickyBoxingGloveCapProvider implements ICapabilitySerializab
     public CompoundTag serializeNBT() {
         CompoundTag nbt = new CompoundTag();
         if (ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY == null) return nbt;
-        nbt.putInt("boxing_glove_id", entityStickyBoxingGloveCap.boxingGloveId);
+        nbt.putBoolean("died_from_sticky_boxing_glove", entityStickyBoxingGloveCap.diedFromStickyBoxingGlove);
         return nbt;
     }
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
         if (ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY != null) {
-            entityStickyBoxingGloveCap.boxingGloveId = nbt.getInt("boxing_glove_id");
+            entityStickyBoxingGloveCap.diedFromStickyBoxingGlove = nbt.getBoolean("died_from_sticky_boxing_glove");
         }
     }
 

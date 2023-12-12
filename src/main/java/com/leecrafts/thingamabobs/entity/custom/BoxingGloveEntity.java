@@ -67,7 +67,6 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
     protected boolean isRebounding;
     protected int damageToItem;
     private int knockback;
-    public final List<LivingEntity> stuckLivingEntities;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public BoxingGloveEntity(EntityType<? extends BoxingGloveEntity> pEntityType, Level pLevel) {
@@ -76,7 +75,6 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         this.isRebounding = false;
         this.damageToItem = 0;
         this.noCulling = true;
-        this.stuckLivingEntities = Lists.newArrayList();
     }
 
     public BoxingGloveEntity(Level level, LivingEntity shooter, ItemStack weapon, float damage) {
@@ -269,13 +267,6 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                 this.isRebounding = true;
             }
         }
-
-        if (this.isSticky() && !this.isRemoved()) {
-            for (LivingEntity livingEntity : this.stuckLivingEntities) {
-                livingEntity.setDeltaMovement(Vec3.ZERO);
-                this.entityMoveFunction(livingEntity);
-            }
-        }
     }
 
     @Override
@@ -361,7 +352,7 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                     this.damageToItem++;
                 }
             }
-            else if (isSticky && !(target instanceof BoxingGloveEntity)) {
+            if (isSticky && !(target instanceof BoxingGloveEntity)) {
                 target.startRiding(this, true);
             }
         }
@@ -397,12 +388,12 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
     public void returnToShooter(Entity shooter) {
         if (shooter != null && this.isSticky()) {
             Vec3 vec3 = shooter.position().add(this.position().subtract(shooter.position()).normalize().scale(1 + shooter.getBbWidth() / 2));
-            for (LivingEntity livingEntity : this.stuckLivingEntities) {
-                if (livingEntity != null && !livingEntity.isRemoved()) {
-                    int dismountOffset = this.level.getBlockState(livingEntity.blockPosition()).getMaterial().isSolid() ? 1 : 0;
-                    livingEntity.teleportTo(vec3.x, vec3.y + dismountOffset, vec3.z);
-                }
-            }
+//            for (LivingEntity livingEntity : this.stuckLivingEntities) {
+//                if (livingEntity != null && !livingEntity.isRemoved()) {
+//                    int dismountOffset = this.level.getBlockState(livingEntity.blockPosition()).getMaterial().isSolid() ? 1 : 0;
+//                    livingEntity.teleportTo(vec3.x, vec3.y + dismountOffset, vec3.z);
+//                }
+//            }
             for (Entity entity : this.getPassengers()) {
                 entity.stopRiding();
                 entity.teleportTo(shooter.getX(), shooter.getY(), shooter.getZ());

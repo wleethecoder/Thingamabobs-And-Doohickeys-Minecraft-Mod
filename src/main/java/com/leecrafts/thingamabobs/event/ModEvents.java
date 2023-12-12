@@ -29,6 +29,7 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -47,6 +48,7 @@ import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityMountEvent;
 import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.level.ExplosionEvent;
@@ -65,8 +67,8 @@ public class ModEvents {
 
         @SubscribeEvent
         public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-            event.register(IEntityStickyBoxingGloveCap.class);
             event.register(IEntityExplosivePastryCap.class);
+            event.register(IEntityStickyBoxingGloveCap.class);
         }
 
         @SubscribeEvent
@@ -173,44 +175,18 @@ public class ModEvents {
             }
         }
 
-        // The reason why I did not make the living entity ride the glove is because there is no good way to force it into a standing position.
-        // (I did not want the living entity to be in a sitting position while being pulled by the glove)
+        // Entities cannot dismount sticky boxing glove projectiles
         @SubscribeEvent
-        public static void livingHurtEvent(LivingHurtEvent event) {
-            LivingEntity livingEntity = event.getEntity();
-            Level level = livingEntity.level;
-            if (!level.isClientSide &&
-                    event.getSource().getDirectEntity() instanceof BoxingGloveEntity boxingGloveEntity) {
-                livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).ifPresent(iEntityStickyBoxingGloveCap -> {
-                    EntityStickyBoxingGloveCap entityStickyBoxingGloveCap = (EntityStickyBoxingGloveCap) iEntityStickyBoxingGloveCap;
-                    if (level.getEntity(entityStickyBoxingGloveCap.boxingGloveId) instanceof BoxingGloveEntity previousStuckBoxingGloveEntity) {
-                        previousStuckBoxingGloveEntity.stuckLivingEntities.remove(livingEntity);
-                    }
-                    if (boxingGloveEntity.isSticky()) {
-                        entityStickyBoxingGloveCap.boxingGloveId = boxingGloveEntity.getId();
-                        boxingGloveEntity.stuckLivingEntities.add(livingEntity);
-                    }
-                    else {
-                        entityStickyBoxingGloveCap.boxingGloveId = -1;
-                    }
-                });
+        public static void entityMountEvent(EntityMountEvent event) {
+            if (!event.getLevel().isClientSide &&
+                    event.getEntityBeingMounted() instanceof BoxingGloveEntity boxingGloveEntity &&
+                    !boxingGloveEntity.isRemoved() &&
+                    event.isDismounting()) {
+                event.setCanceled(true);
             }
         }
 
-        @SubscribeEvent
-        public static void livingTickEvent(LivingEvent.LivingTickEvent event) {
-            LivingEntity livingEntity = event.getEntity();
-            Level level = livingEntity.level;
-            if (!level.isClientSide) {
-                livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).ifPresent(iEntityStickyBoxingGloveCap -> {
-                    EntityStickyBoxingGloveCap entityStickyBoxingGloveCap = (EntityStickyBoxingGloveCap) iEntityStickyBoxingGloveCap;
-                    if (entityStickyBoxingGloveCap.boxingGloveId != -1 && !(level.getEntity(entityStickyBoxingGloveCap.boxingGloveId) instanceof BoxingGloveEntity)) {
-                        entityStickyBoxingGloveCap.boxingGloveId = -1;
-                    }
-                });
-            }
-        }
-
+        // Item drops are teleported to the user if it kills an entity with a sticky spring-loaded boxing glove.
         @SubscribeEvent
         public static void livingDropsEvent(LivingDropsEvent event) {
             if (!event.getEntity().level.isClientSide &&
@@ -226,18 +202,31 @@ public class ModEvents {
         }
 
         @SubscribeEvent
-        public static void livingExperienceDropEvent(LivingExperienceDropEvent event) {
+        public static void livingDeathEvent(LivingDeathEvent event) {
             LivingEntity livingEntity = event.getEntity();
-            Level level = livingEntity.level;
-            Player attackingPlayer = event.getAttackingPlayer();
-            if (!level.isClientSide && attackingPlayer != null) {
+            DamageSource damageSource = event.getSource();
+            if (!livingEntity.level.isClientSide && damageSource != null) {
                 livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).ifPresent(iEntityStickyBoxingGloveCap -> {
                     EntityStickyBoxingGloveCap entityStickyBoxingGloveCap = (EntityStickyBoxingGloveCap) iEntityStickyBoxingGloveCap;
-                    if (level.getEntity(entityStickyBoxingGloveCap.boxingGloveId) instanceof BoxingGloveEntity boxingGloveEntity &&
-                            boxingGloveEntity.isSticky()) {
+                    entityStickyBoxingGloveCap.diedFromStickyBoxingGlove =
+                            damageSource.getDirectEntity() instanceof BoxingGloveEntity boxingGloveEntity &&
+                                    boxingGloveEntity.isSticky();
+                });
+            }
+        }
+
+        // XP drops are teleported to the user if it kills an entity with a sticky spring-loaded boxing glove.
+        @SubscribeEvent
+        public static void livingExperienceDropEvent(LivingExperienceDropEvent event) {
+            LivingEntity livingEntity = event.getEntity();
+            Player attackingPlayer = event.getAttackingPlayer();
+            if (!livingEntity.level.isClientSide && attackingPlayer != null) {
+                livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).ifPresent(iEntityStickyBoxingGloveCap -> {
+                    EntityStickyBoxingGloveCap entityStickyBoxingGloveCap = (EntityStickyBoxingGloveCap) iEntityStickyBoxingGloveCap;
+                    if (entityStickyBoxingGloveCap.diedFromStickyBoxingGlove) {
                         event.setCanceled(true);
-                        level.addFreshEntity(new ExperienceOrb(
-                                level,
+                        livingEntity.level.addFreshEntity(new ExperienceOrb(
+                                livingEntity.level,
                                 attackingPlayer.getX(),
                                 attackingPlayer.getY(),
                                 attackingPlayer.getZ(),
@@ -245,18 +234,7 @@ public class ModEvents {
                     }
                 });
             }
-        }
 
-        @SubscribeEvent
-        public static void entityTravelToDimensionEvent(EntityTravelToDimensionEvent event) {
-            if (event.getEntity() instanceof LivingEntity livingEntity && !livingEntity.level.isClientSide) {
-                livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).ifPresent(iEntityStickyBoxingGloveCap -> {
-                    EntityStickyBoxingGloveCap entityStickyBoxingGloveCap = (EntityStickyBoxingGloveCap) iEntityStickyBoxingGloveCap;
-                    if (entityStickyBoxingGloveCap.boxingGloveId != -1) {
-                        event.setCanceled(true);
-                    }
-                });
-            }
         }
 
     }
