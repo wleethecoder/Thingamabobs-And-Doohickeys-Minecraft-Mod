@@ -228,6 +228,7 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
                 Vec3 vec31 = calculateHorizontalViewVector(yRot);
                 this.setStickToEntityAngle((float) Math.atan2(vec3.x * vec31.z - vec31.x * vec3.z, vec3.dot(vec31)));
                 this.setStickToEntityYOffset((float) Mth.clamp(this.getY() - entity.getY(), 0, entity.getBbHeight()));
+                this.playSplatSound();
             }
             else {
                 this.explode();
@@ -246,7 +247,6 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
         if (!this.level.isClientSide) {
             this.level.broadcastEntityEvent(this, (byte) 3);
         }
-        this.playSound(ModSounds.EXPLOSIVE_PASTRY_SPLAT.get(), 1.0f, (this.random.nextFloat() - this.random.nextFloat()) * 0.2f + 1.0f);
     }
 
     @Override
@@ -277,6 +277,8 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
 
             VoxelShape voxelShape = this.level.getBlockState(this.getLandminePos()).getCollisionShape(this.level, this.getLandminePos());
             this.setPos(this.position().relative(direction, voxelShape.max(direction.getAxis()) - 1));
+
+            this.playSplatSound();
         }
     }
 
@@ -412,6 +414,10 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
         if (landminePos.length == 3) {
             this.setLandminePos(new BlockPos(landminePos[0], landminePos[1], landminePos[2]));
         }
+    }
+
+    private void playSplatSound() {
+        this.playSound(ModSounds.EXPLOSIVE_PASTRY_SPLAT.get(), 1.0f, (this.random.nextFloat() - this.random.nextFloat()) * 0.2f + 1.0f);
     }
 
     @Override
