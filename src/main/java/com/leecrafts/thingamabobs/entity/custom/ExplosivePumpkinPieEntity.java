@@ -15,4 +15,8 @@ public class ExplosivePumpkinPieEntity extends AbstractExplosivePastryEntity {
         super(ModEntityTypes.EXPLOSIVE_PUMPKIN_PIE.get(), shooter, level);
     }
 
+    public ExplosivePumpkinPieEntity(Level level, double x, double y, double z) {
+        super(ModEntityTypes.EXPLOSIVE_PUMPKIN_PIE.get(), level, x, y, z);
+    }
+
 }

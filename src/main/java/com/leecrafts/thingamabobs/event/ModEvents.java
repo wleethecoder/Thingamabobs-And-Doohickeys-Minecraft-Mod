@@ -8,6 +8,7 @@ import com.leecrafts.thingamabobs.capability.player.PlayerMalletCap;
 import com.leecrafts.thingamabobs.capability.player.PlayerMalletCapProvider;
 import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.enchantment.custom.MalletDamageEnchantment;
+import com.leecrafts.thingamabobs.entity.custom.AbstractExplosivePastryEntity;
 import com.leecrafts.thingamabobs.entity.custom.BoxingGloveEntity;
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.item.custom.ComicallyLargeMalletItem;
@@ -73,17 +74,15 @@ public class ModEvents {
 
         @SubscribeEvent
         public static void attachCapabilitiesEventEntity(AttachCapabilitiesEvent<Entity> event) {
-            Entity entity = event.getObject();
-            if (entity != null && !entity.getCommandSenderWorld().isClientSide) {
-                if (!entity.getCapability(ModCapabilities.ENTITY_EXPLOSIVE_PASTRY_CAPABILITY).isPresent()) {
+            if (event.getObject() instanceof LivingEntity livingEntity && !livingEntity.getCommandSenderWorld().isClientSide) {
+                if (!livingEntity.getCapability(ModCapabilities.ENTITY_EXPLOSIVE_PASTRY_CAPABILITY).isPresent()) {
                     EntityExplosivePastryCapProvider entityExplosivePastryCapProvider = new EntityExplosivePastryCapProvider();
                     event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "entity_explosive_pastry"), entityExplosivePastryCapProvider);
-                    if (!(entity instanceof Player)) {
+                    if (!(livingEntity instanceof Player)) {
                         event.addListener(entityExplosivePastryCapProvider::invalidate);
                     }
                 }
-                if (entity instanceof LivingEntity livingEntity &&
-                        !livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).isPresent()) {
+                if (!livingEntity.getCapability(ModCapabilities.ENTITY_STICKY_BOXING_GLOVE_CAPABILITY).isPresent()) {
                     EntityStickyBoxingGloveCapProvider entityStickyBoxingGloveCapProvider = new EntityStickyBoxingGloveCapProvider();
                     event.addCapability(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, "entity_sticky_boxing_glove"), entityStickyBoxingGloveCapProvider);
                     if (!(livingEntity instanceof Player)) {
@@ -235,6 +234,26 @@ public class ModEvents {
                 });
             }
 
+        }
+
+        @SubscribeEvent
+        public static void resetExplosionTimestamp(LivingEvent.LivingTickEvent event) {
+            LivingEntity livingEntity = event.getEntity();
+            if (!livingEntity.level.isClientSide) {
+                boolean coveredInPastries = false;
+                for (Entity entity : livingEntity.getPassengers()) {
+                    if (entity instanceof AbstractExplosivePastryEntity) {
+                        coveredInPastries = true;
+                        break;
+                    }
+                }
+                if (!coveredInPastries) {
+                    livingEntity.getCapability(ModCapabilities.ENTITY_EXPLOSIVE_PASTRY_CAPABILITY).ifPresent(iEntityExplosivePastryCap -> {
+                        EntityExplosivePastryCap entityExplosivePastryCap = (EntityExplosivePastryCap) iEntityExplosivePastryCap;
+                        entityExplosivePastryCap.explosionTimestamp = 0;
+                    });
+                }
+            }
         }
 
     }

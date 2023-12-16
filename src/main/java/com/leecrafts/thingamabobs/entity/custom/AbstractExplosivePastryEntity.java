@@ -30,11 +30,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.event.ForgeEventFactory;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.core.animatable.GeoAnimatable;
@@ -69,10 +71,15 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
         super(pEntityType, shooter, level);
     }
 
+    public AbstractExplosivePastryEntity(EntityType<? extends AbstractExplosivePastryEntity> pEntityType, Level level, double x, double y, double z) {
+        super(pEntityType, x, y, z, level);
+    }
+
     @Override
     public void tick() {
         if (this.isLandmine()) {
-            if (this.level.getBlockState(this.getLandminePos()).getMaterial().isSolid()) {
+            BlockState blockState = this.level.getBlockState(this.getLandminePos());
+            if (!blockState.isAir() && !blockState.getMaterial().isLiquid()) {
                 this.updateLandmineRot();
                 if (this.level instanceof ServerLevel) {
                     List<Entity> list = this.level.getEntities(this, this.getBoundingBox());
@@ -265,35 +272,21 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
                     throw new IllegalStateException("Explosive pastry is in a solid block when it should not be (entity id " + this.getId() + ")");
                 }
             }
+
+            VoxelShape voxelShape = this.level.getBlockState(this.getLandminePos()).getCollisionShape(this.level, this.getLandminePos());
+            this.setPos(this.position().relative(direction, voxelShape.max(direction.getAxis()) - 1));
         }
     }
 
     private void setPosFromDirection(BlockHitResult pResult, Direction direction) {
+        this.setPos(Vec3.atCenterOf(pResult.getBlockPos()).relative(direction, 0.125 + 0.5));
         switch (direction) {
-            case DOWN -> {
-                this.setPos(Vec3.upFromBottomCenterOf(pResult.getBlockPos(), -0.125));
-                this.setLandmineRot(-90f, 0f);
-            }
-            case UP -> {
-                this.setPos(Vec3.upFromBottomCenterOf(pResult.getBlockPos(), 1.125));
-                this.setLandmineRot(90f, 0f);
-            }
-            case NORTH -> {
-                this.setPos(Vec3.atLowerCornerWithOffset(pResult.getBlockPos(), 0.5, 0.5, -0.125));
-                this.setLandmineRot(0f, 180f);
-            }
-            case SOUTH -> {
-                this.setPos(Vec3.atLowerCornerWithOffset(pResult.getBlockPos(), 0.5, 0.5, 1.125));
-                this.setLandmineRot(0f, 0f);
-            }
-            case WEST -> {
-                this.setPos(Vec3.atLowerCornerWithOffset(pResult.getBlockPos(), -0.125, 0.5, 0.5));
-                this.setLandmineRot(0f, -90f);
-            }
-            case EAST -> {
-                this.setPos(Vec3.atLowerCornerWithOffset(pResult.getBlockPos(), 1.125, 0.5, 0.5));
-                this.setLandmineRot(0f, 90f);
-            }
+            case DOWN -> this.setLandmineRot(-90f, 0f);
+            case UP -> this.setLandmineRot(90f, 0f);
+            case NORTH -> this.setLandmineRot(0f, 180f);
+            case SOUTH -> this.setLandmineRot(0f, 0f);
+            case WEST -> this.setLandmineRot(0f, -90f);
+            case EAST -> this.setLandmineRot(0f, 90f);
         }
     }
 

@@ -44,6 +44,8 @@ public class ModItems {
             event.enqueueWork(() -> {
                 DispenserBlock.registerBehavior(ModItems.SPRING_LOADED_BOXING_GLOVE_ITEM.get(),
                         new SpringLoadedBoxingGloveItem.SpringLoadedBoxingGloveDispenseItemBehavior());
+                DispenserBlock.registerBehavior(ModItems.EXPLOSIVE_PUMPKIN_PIE_ITEM.get(),
+                        new ExplosivePumpkinPieItem.ExplosivePumpkinDispenseItemBehavior());
             });
         }
 
