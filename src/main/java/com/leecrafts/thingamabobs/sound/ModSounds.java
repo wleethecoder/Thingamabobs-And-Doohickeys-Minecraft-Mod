@@ -19,6 +19,8 @@ public class ModSounds {
 
     public static final RegistryObject<SoundEvent> SPRING_LOADED_BOXING_GLOVE_BACKFIRE = registerSoundEvent("item.punchy_glove.backfire");
 
+    public static final RegistryObject<SoundEvent> EXPLOSIVE_PASTRY_SPLAT = registerSoundEvent("entity.explosive_pastry.splat");
+
     public static RegistryObject<SoundEvent> registerSoundEvent(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(ThingamabobsAndDoohickeys.MODID, name)));
     }

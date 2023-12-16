@@ -5,6 +5,7 @@ import com.leecrafts.thingamabobs.capability.entity.EntityExplosivePastryCap;
 import com.leecrafts.thingamabobs.entity.ModEntityTypes;
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.misc.FixedDamageExplosion;
+import com.leecrafts.thingamabobs.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -245,6 +246,7 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
         if (!this.level.isClientSide) {
             this.level.broadcastEntityEvent(this, (byte) 3);
         }
+        this.playSound(ModSounds.EXPLOSIVE_PASTRY_SPLAT.get(), 1.0f, (this.random.nextFloat() - this.random.nextFloat()) * 0.2f + 1.0f);
     }
 
     @Override

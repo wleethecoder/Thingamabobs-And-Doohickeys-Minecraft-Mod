@@ -26,5 +26,14 @@
       "thingamabobs:punchy_glove/backfire1",
       "thingamabobs:punchy_glove/backfire2"
     ]
+  },
+  "entity.explosive_pastry.splat": {
+    "subtitle": "sounds.thingamabobs.entity.explosive_pastry.splat",
+    "sounds": [
+      "thingamabobs:explosive_pastry/splat1",
+      "thingamabobs:explosive_pastry/splat2",
+      "thingamabobs:explosive_pastry/splat3",
+      "thingamabobs:explosive_pastry/splat4"
+    ]
   }
 }
