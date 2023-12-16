@@ -1,12 +1,16 @@
 package com.leecrafts.thingamabobs.item.custom;
 
 import com.leecrafts.thingamabobs.entity.custom.ExplosiveCakeEntity;
+import net.minecraft.Util;
+import net.minecraft.core.Position;
+import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -50,6 +54,16 @@ public class ExplosiveCakeItem extends Item implements GeoItem {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.cache;
+    }
+
+    public static class ExplosiveCakeDispenseItemBehavior extends AbstractProjectileDispenseBehavior {
+
+        @Override
+        protected @NotNull Projectile getProjectile(@NotNull Level level, @NotNull Position position, @NotNull ItemStack itemStack) {
+            return Util.make(new ExplosiveCakeEntity(level, position.x(), position.y(), position.z()), (explosiveCakeEntity -> {
+                explosiveCakeEntity.setItem(itemStack);
+            }));
+        }
     }
 
 }

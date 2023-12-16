@@ -2,7 +2,6 @@ package com.leecrafts.thingamabobs.item.custom;
 
 import com.leecrafts.thingamabobs.entity.custom.ExplosivePumpkinPieEntity;
 import net.minecraft.Util;
-import net.minecraft.core.BlockSource;
 import net.minecraft.core.Position;
 import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
 import net.minecraft.sounds.SoundEvents;
@@ -57,9 +56,9 @@ public class ExplosivePumpkinPieItem extends Item implements GeoItem {
         return this.cache;
     }
 
-    public static class ExplosivePumpkinDispenseItemBehavior extends AbstractProjectileDispenseBehavior {
+    public static class ExplosivePumpkinPieDispenseItemBehavior extends AbstractProjectileDispenseBehavior {
 
-        public ExplosivePumpkinDispenseItemBehavior() {}
+        public ExplosivePumpkinPieDispenseItemBehavior() {}
 
         @Override
         protected @NotNull Projectile getProjectile(@NotNull Level level, @NotNull Position position, @NotNull ItemStack itemStack) {
