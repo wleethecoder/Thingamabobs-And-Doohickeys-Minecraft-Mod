@@ -283,15 +283,6 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         super.onHitEntity(pResult);
         Entity shooter = this.getOwner();
         Entity target = pResult.getEntity();
-        // TODO armor stands are unaffected because the damageSource is not a player attack
-        // But this also needs to be a mobProjectile so that EnderMen can dodge it
-//        DamageSource damageSource;
-//        if (shooter instanceof Player && target instanceof ArmorStand) {
-//            damageSource = this.damageSources().playerAttack((Player) shooter);
-//        }
-//        else {
-//            damageSource = this.damageSources().mobProjectile(this, shooter instanceof LivingEntity ? (LivingEntity) shooter : null);
-//        }
         DamageSource damageSource = new ModDamageSources(
                 this.level.registryAccess()).wallop(this, shooter instanceof LivingEntity ? (LivingEntity) shooter : null);
         boolean isEnderMan = target.getType() == EntityType.ENDERMAN;

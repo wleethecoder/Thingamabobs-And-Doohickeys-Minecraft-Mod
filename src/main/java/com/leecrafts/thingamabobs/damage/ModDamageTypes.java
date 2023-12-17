@@ -16,9 +16,4 @@ public interface ModDamageTypes {
         return ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(ThingamabobsAndDoohickeys.MODID, name));
     }
 
-    static void bootstrap(BootstapContext<DamageType> bootstapContext) {
-        bootstapContext.register(WHAM, new DamageType("wham", 0.1f));
-        bootstapContext.register(WALLOP, new DamageType("wallop", 0.1f));
-    }
-
 }
