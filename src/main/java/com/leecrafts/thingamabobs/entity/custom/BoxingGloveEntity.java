@@ -1,7 +1,7 @@
 package com.leecrafts.thingamabobs.entity.custom;
 
 import com.google.common.collect.Lists;
-import com.leecrafts.thingamabobs.config.ThingamabobsAndDoohickeysCommonConfigs;
+import com.leecrafts.thingamabobs.config.ThingamabobsAndDoohickeysServerConfigs;
 import com.leecrafts.thingamabobs.damage.ModDamageSources;
 import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.entity.ModEntityTypes;
@@ -164,7 +164,7 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                                 this.setDeflected(true);
                                 break;
                             }
-                            else if (ThingamabobsAndDoohickeysCommonConfigs.PUNCHY_GLOVE_GRIEFING.get() &&
+                            else if (ThingamabobsAndDoohickeysServerConfigs.PUNCHY_GLOVE_GRIEFING.get() &&
                                     blockState1.getMaterial() != Material.LEAVES &&
                                     hardness >= 0.0f &&
                                     hardness <= 0.3f &&

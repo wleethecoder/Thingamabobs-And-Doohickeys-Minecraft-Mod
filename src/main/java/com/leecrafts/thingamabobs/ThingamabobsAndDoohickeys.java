@@ -1,6 +1,5 @@
 package com.leecrafts.thingamabobs;
 
-import com.leecrafts.thingamabobs.config.ThingamabobsAndDoohickeysCommonConfigs;
 import com.leecrafts.thingamabobs.config.ThingamabobsAndDoohickeysServerConfigs;
 import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.entity.ModEntityTypes;
@@ -10,23 +9,14 @@ import com.leecrafts.thingamabobs.entity.client.ExplosivePumpkinPieRenderer;
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.packet.PacketHandler;
 import com.leecrafts.thingamabobs.sound.ModSounds;
-import com.mojang.logging.LogUtils;
 import dev.kosmx.playerAnim.api.layered.ModifierLayer;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationFactory;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.Material;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.CreativeModeTabEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -35,10 +25,6 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
-import org.slf4j.Logger;
 import software.bernie.geckolib.GeckoLib;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -63,7 +49,6 @@ public class ThingamabobsAndDoohickeys
         GeckoLib.initialize();
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ThingamabobsAndDoohickeysServerConfigs.SPEC, "thingamabobs-server.toml");
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ThingamabobsAndDoohickeysCommonConfigs.SPEC, "thingamabobs-common.toml");
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
