@@ -292,18 +292,19 @@ public class ModEvents {
                 if (localPlayer != null) {
                     localPlayer.getCapability(ModCapabilities.PLAYER_MALLET_CAPABILITY).ifPresent(iPlayerCap -> {
                         PlayerMalletCap playerMalletCap = (PlayerMalletCap) iPlayerCap;
-                        boolean leftMouse = minecraft.mouseHandler.isLeftPressed();
-                        boolean rightMouse = minecraft.mouseHandler.isRightPressed();
+                        boolean leftMouse = minecraft.options.keyAttack.isDown(); // minecraft.mouseHandler.isLeftPressed();
+                        boolean rightMouse = minecraft.options.keyUse.isDown(); // minecraft.mouseHandler.isRightPressed();
                         ItemStack mainHand = localPlayer.getMainHandItem();
                         boolean holdingMallet = mainHand.getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get();
                         boolean mirrored = minecraft.options.mainHand().get() == HumanoidArm.LEFT;
                         int chargeTime = ComicallyLargeMalletItem.getChargeTime(mainHand);
+                        boolean enteredGUI = minecraft.screen != null;
 
-                        if (!holdingMallet || !leftMouse) {
+                        if (!holdingMallet || !leftMouse || enteredGUI) {
                             if (!leftMouse) {
                                 // The mallet, when at least 50% charged, will deal damage (0 damage otherwise).
                                 // If the mallet is 100% charged, it deals damage to all entities in an area between the player and its reach distance.
-                                if (playerMalletCap.malletCharge > chargeTime / 2) {
+                                if (playerMalletCap.malletCharge > chargeTime / 2 && !enteredGUI) {
                                     // called so that the player will face where it attacks
                                     localPlayer.swing(InteractionHand.MAIN_HAND);
 

@@ -2,6 +2,7 @@ package com.leecrafts.thingamabobs.entity.custom;
 
 import com.leecrafts.thingamabobs.capability.ModCapabilities;
 import com.leecrafts.thingamabobs.capability.entity.EntityExplosivePastryCap;
+import com.leecrafts.thingamabobs.config.ThingamabobsAndDoohickeysServerConfigs;
 import com.leecrafts.thingamabobs.entity.ModEntityTypes;
 import com.leecrafts.thingamabobs.item.ModItems;
 import com.leecrafts.thingamabobs.misc.FixedDamageExplosion;
@@ -114,7 +115,16 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
     public void explode() {
         if (this.level instanceof ServerLevel serverLevel) {
 //        serverLevel.explode(this, this.getX(), this.getY(), this.getZ(), BLAST_RADIUS, Level.ExplosionInteraction.NONE);
-            FixedDamageExplosion fixedDamageExplosion = new FixedDamageExplosion(serverLevel, this, this.getX(), this.getY(), this.getZ(), BLAST_RADIUS, DAMAGE, Explosion.BlockInteraction.KEEP);
+            boolean griefing = ThingamabobsAndDoohickeysServerConfigs.EXPLOSIVE_PASTRY_GRIEFING.get();
+            FixedDamageExplosion fixedDamageExplosion = new FixedDamageExplosion(
+                    serverLevel,
+                    this,
+                    this.getX(),
+                    this.getY(),
+                    this.getZ(),
+                    BLAST_RADIUS,
+                    DAMAGE,
+                    griefing ? Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.KEEP);
             if (!ForgeEventFactory.onExplosionStart(serverLevel, fixedDamageExplosion)) {
                 this.setWillExplode(true);
                 fixedDamageExplosion.explode();

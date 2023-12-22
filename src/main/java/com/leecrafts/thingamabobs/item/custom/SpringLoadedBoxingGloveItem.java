@@ -1,5 +1,6 @@
 package com.leecrafts.thingamabobs.item.custom;
 
+import com.leecrafts.thingamabobs.config.ThingamabobsAndDoohickeysCommonConfigs;
 import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.entity.custom.BoxingGloveEntity;
 import com.leecrafts.thingamabobs.item.client.SpringLoadedBoxingGloveRenderer;
@@ -204,7 +205,7 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
         return (super.canApplyAtEnchantingTable(stack, enchantment) ||
-                enchantment == Enchantments.SILK_TOUCH ||
+                (enchantment == Enchantments.SILK_TOUCH && ThingamabobsAndDoohickeysCommonConfigs.PUNCHY_GLOVE_GRIEFING.get()) ||
                 enchantment == Enchantments.PUNCH_ARROWS) &&
                 enchantment != Enchantments.MULTISHOT &&
                 enchantment != Enchantments.PIERCING;
