@@ -25,6 +25,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
@@ -79,6 +80,7 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
 
     @Override
     public void tick() {
+        super.tick();
         if (this.isLandmine()) {
             BlockState blockState = this.level.getBlockState(this.getLandminePos());
             if (!blockState.isAir() && !blockState.getMaterial().isLiquid()) {
@@ -94,9 +96,9 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
                 this.setNoGravity(false);
                 this.setLandmine(false);
             }
+            this.blocksBuilding = true;
         }
         else {
-            super.tick();
             Entity vehicle = this.getVehicle();
             if (vehicle != null && !vehicle.isRemoved()) {
                 if (this.tickCount - this.getStickToEntityTimestamp() >= EXPLODE_TIMER) {
@@ -108,6 +110,17 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
                         }
                     });
                 }
+            }
+            this.blocksBuilding = false;
+        }
+
+        if (!this.isRemoved()) {
+            BlockState blockState = this.level.getBlockState(this.blockPosition());
+            if (blockState.getMaterial().isLiquid()) {
+                Item item = this instanceof ExplosivePumpkinPieEntity ? Items.PUMPKIN_PIE : Items.CAKE;
+                ItemEntity itemEntity = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), new ItemStack(item, 1));
+                this.level.addFreshEntity(itemEntity);
+                this.discard();
             }
         }
     }
