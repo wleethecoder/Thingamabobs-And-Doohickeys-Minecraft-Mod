@@ -83,7 +83,7 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
         super.tick();
         if (this.isLandmine()) {
             BlockState blockState = this.level.getBlockState(this.getLandminePos());
-            if (!blockState.isAir() && !blockState.getMaterial().isLiquid()) {
+            if (this.getVehicle() == null && !blockState.isAir() && !blockState.getMaterial().isLiquid()) {
                 this.updateLandmineRot();
                 if (this.level instanceof ServerLevel) {
                     List<Entity> list = this.level.getEntities(this, this.getBoundingBox());
@@ -243,20 +243,26 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
         }
         if (!(entity instanceof AbstractExplosivePastryEntity)) {
             if (entity instanceof LivingEntity && !(entity instanceof EnderDragon)) {
-                entity.hurt(this.damageSources().thrown(this, this.getOwner()), 0);
-                this.setStickToEntityTimestamp(this.tickCount);
-                this.startRiding(entity, true);
-                Vec3 vec3 = this.position().subtract(entity.position()).multiply(1, 0, 1);
-                float yRot = entity instanceof Player ? entity.getYHeadRot() : entity.getYRot();
-                Vec3 vec31 = calculateHorizontalViewVector(yRot);
-                this.setStickToEntityAngle((float) Math.atan2(vec3.x * vec31.z - vec31.x * vec3.z, vec3.dot(vec31)));
-                this.setStickToEntityYOffset((float) Mth.clamp(this.getY() - entity.getY(), 0, entity.getBbHeight()));
-                this.playSplatSound();
+                this.stickToEntity(entity);
             }
             else {
                 this.explode();
             }
         }
+    }
+
+    public void stickToEntity(Entity entity) {
+        entity.hurt(this.damageSources().thrown(this, this.getOwner()), 0);
+        this.setStickToEntityTimestamp(this.tickCount);
+        this.startRiding(entity, true);
+        Vec3 vec3 = this.position().subtract(entity.position()).multiply(1, 0, 1);
+        float yRot = entity instanceof Player ? entity.getYHeadRot() : entity.getYRot();
+        Vec3 vec31 = calculateHorizontalViewVector(yRot);
+        this.setStickToEntityAngle((float) Math.atan2(vec3.x * vec31.z - vec31.x * vec3.z, vec3.dot(vec31)));
+        this.setStickToEntityYOffset((float) Mth.clamp(this.getY() - entity.getY(), 0, entity.getBbHeight()));
+        this.setNoGravity(false);
+        this.setLandmine(false);
+        this.playSplatSound();
     }
 
     private static Vec3 calculateHorizontalViewVector(float yRot) {
