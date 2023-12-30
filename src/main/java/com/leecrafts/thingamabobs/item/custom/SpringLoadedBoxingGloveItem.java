@@ -186,10 +186,11 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
     @Override
     public void inventoryTick(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull Entity pEntity, int pSlotId, boolean pIsSelected) {
         super.inventoryTick(pStack, pLevel, pEntity, pSlotId, pIsSelected);
+        boolean equipped = pIsSelected || pSlotId == 0;
 
         // In case the weapon gets "stuck"
         if (pEntity.tickCount % TICKS_PER_SECOND == 0 &&
-                pIsSelected &&
+                equipped &&
                 isBoing(pStack) &&
                 pLevel.getEntitiesOfClass(BoxingGloveEntity.class, pEntity.getBoundingBox().inflate(40)).isEmpty()) {
             resetState(pLevel, pEntity, pStack);
@@ -198,7 +199,7 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
         if (isCharged(pStack)) {
             this.playAnimation(pLevel, pEntity, pStack, "charge_idle");
         }
-        else if (!pIsSelected && !isBoing(pStack)) {
+        else if (!equipped && !isBoing(pStack)) {
             this.playAnimation(pLevel, pEntity, pStack, "idle");
         }
     }
