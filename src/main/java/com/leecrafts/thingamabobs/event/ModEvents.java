@@ -109,11 +109,11 @@ public class ModEvents {
             if (event.getSource().getEntity() instanceof LivingEntity attacker &&
                     !attacker.level.isClientSide &&
                     !(attacker instanceof Player)) {
-                ItemStack mainHand = attacker.getMainHandItem();
-                if (mainHand.getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get()) {
+                ItemStack mainHandItem = attacker.getMainHandItem();
+                if (mainHandItem.getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get()) {
                     double numerator = BASE_DAMAGE +
-                            MalletDamageEnchantment.DAMAGE_MULTIPLIER * mainHand.getEnchantmentLevel(ModEnchantments.WHAM.get());
-                    double denominator = getChargeTime(mainHand) / (1.0 * TICKS_PER_SECOND);
+                            MalletDamageEnchantment.DAMAGE_MULTIPLIER * mainHandItem.getEnchantmentLevel(ModEnchantments.WHAM.get());
+                    double denominator = getChargeTime(mainHandItem) / (1.0 * TICKS_PER_SECOND);
                     double attackDamage = attacker.getAttributeBaseValue(Attributes.ATTACK_DAMAGE) - 1 +
                             (attacker.hasEffect(MobEffects.DAMAGE_BOOST) ? 3 * (attacker.getEffect(MobEffects.DAMAGE_BOOST).getAmplifier() + 1) : 0);
                     float DPS = (float) ((attackDamage + numerator) / denominator);
@@ -294,10 +294,10 @@ public class ModEvents {
                         PlayerMalletCap playerMalletCap = (PlayerMalletCap) iPlayerCap;
                         boolean leftMouse = minecraft.options.keyAttack.isDown(); // minecraft.mouseHandler.isLeftPressed();
                         boolean rightMouse = minecraft.options.keyUse.isDown(); // minecraft.mouseHandler.isRightPressed();
-                        ItemStack mainHand = localPlayer.getMainHandItem();
-                        boolean holdingMallet = mainHand.getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get();
+                        ItemStack mainHandItem = localPlayer.getMainHandItem();
+                        boolean holdingMallet = mainHandItem.getItem() == ModItems.COMICALLY_LARGE_MALLET_ITEM.get();
                         boolean mirrored = minecraft.options.mainHand().get() == HumanoidArm.LEFT;
-                        int chargeTime = ComicallyLargeMalletItem.getChargeTime(mainHand);
+                        int chargeTime = ComicallyLargeMalletItem.getChargeTime(mainHandItem);
                         boolean enteredGUI = minecraft.screen != null;
 
                         if (!holdingMallet || !leftMouse || enteredGUI) {
