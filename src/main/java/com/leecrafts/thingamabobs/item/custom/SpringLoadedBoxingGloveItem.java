@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import static net.minecraft.SharedConstants.TICKS_PER_SECOND;
+
 public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanishable, IForgeItem, GeoItem {
 
     private static final float PROJECTILE_DAMAGE = 10.0f;
@@ -186,7 +188,7 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
         super.inventoryTick(pStack, pLevel, pEntity, pSlotId, pIsSelected);
 
         // In case the weapon gets "stuck"
-        if (pEntity.tickCount % 20 == 0 &&
+        if (pEntity.tickCount % TICKS_PER_SECOND == 0 &&
                 pIsSelected &&
                 isBoing(pStack) &&
                 pLevel.getEntitiesOfClass(BoxingGloveEntity.class, pEntity.getBoundingBox().inflate(40)).isEmpty()) {

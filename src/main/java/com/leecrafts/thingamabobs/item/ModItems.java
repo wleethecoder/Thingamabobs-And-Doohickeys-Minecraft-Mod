@@ -1,10 +1,7 @@
 package com.leecrafts.thingamabobs.item;
 
 import com.leecrafts.thingamabobs.ThingamabobsAndDoohickeys;
-import com.leecrafts.thingamabobs.item.custom.ComicallyLargeMalletItem;
-import com.leecrafts.thingamabobs.item.custom.ExplosiveCakeItem;
-import com.leecrafts.thingamabobs.item.custom.ExplosivePumpkinPieItem;
-import com.leecrafts.thingamabobs.item.custom.SpringLoadedBoxingGloveItem;
+import com.leecrafts.thingamabobs.item.custom.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -31,6 +28,9 @@ public class ModItems {
 
     public static final RegistryObject<Item> EXPLOSIVE_CAKE_ITEM = ITEMS.register("explosive_cake",
             () -> new ExplosiveCakeItem((new Item.Properties()).stacksTo(16)));
+
+    public static final RegistryObject<Item> COMICALLY_LARGE_MAGNET_ITEM = ITEMS.register("magnet",
+            () -> new ComicallyLargeMagnetItem((new Item.Properties()).durability(250)));
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);

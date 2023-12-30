@@ -69,6 +69,9 @@ public class ThingamabobsAndDoohickeys
             event.accept(ModItems.EXPLOSIVE_PUMPKIN_PIE_ITEM);
             event.accept(ModItems.EXPLOSIVE_CAKE_ITEM);
         }
+        if (event.getTab() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+            event.accept(ModItems.COMICALLY_LARGE_MAGNET_ITEM);
+        }
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
