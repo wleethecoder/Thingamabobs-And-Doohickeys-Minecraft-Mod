@@ -1,9 +1,12 @@
 package com.leecrafts.thingamabobs.item.custom;
 
+import com.leecrafts.thingamabobs.config.ThingamabobsAndDoohickeysServerConfigs;
 import com.leecrafts.thingamabobs.entity.custom.AbstractExplosivePastryEntity;
 import com.leecrafts.thingamabobs.item.client.ComicallyLargeMagnetRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.stats.Stats;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
@@ -20,11 +23,11 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.common.extensions.IForgeItem;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -48,30 +51,31 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
     @Override
     public void inventoryTick(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull Entity pEntity, int pSlotId, boolean pIsSelected) {
         super.inventoryTick(pStack, pLevel, pEntity, pSlotId, pIsSelected);
-        boolean equipped = pIsSelected || pSlotId == 0;
-        if (equipped && (!(pEntity instanceof Player) || !pEntity.isSpectator())) {
-
+        String name = pStack.getDisplayName().getString();
+        if (pEntity instanceof Player user &&
+                !user.isSpectator() &&
+                (pIsSelected || basicallyTheSameMagnet(user.getOffhandItem(), pStack))) {
             // Destroys nearby metallic ores
             // I tried using BlockPos.withinManhattan and BlockPos.betweenClosedStream, but neither seemed efficient
             int amount = 0;
             boolean piglinsAngered = false;
-            if (!pLevel.isClientSide && pEntity.tickCount % (TICKS_PER_SECOND / 2) == 0) {
+            if (!pLevel.isClientSide && user.tickCount % (TICKS_PER_SECOND / 2) == 0) {
                 for (double x = -REACH; x <= REACH; x++) {
                     for (double y = -REACH; y <= REACH; y++) {
                         for (double z = -REACH; z <= REACH; z++) {
-                            BlockPos blockPos = pEntity.blockPosition().offset((int) x, (int) y, (int) z);
+                            BlockPos blockPos = user.blockPosition().offset((int) x, (int) y, (int) z);
                             BlockState blockState = pLevel.getBlockState(blockPos);
                             if (isMetallicOre(blockState.getBlock())) {
-                                pLevel.destroyBlock(blockPos, false, pEntity);
+                                pLevel.destroyBlock(blockPos, false, user);
                                 Block.dropResources(
                                         blockState,
                                         pLevel,
                                         blockPos,
                                         blockState.hasBlockEntity() ? pLevel.getBlockEntity(blockPos) : null,
-                                        pEntity,
+                                        user,
                                         pStack);
-                                if (pEntity instanceof Player player && !player.isCreative()) {
-                                    player.awardStat(Stats.BLOCK_MINED.get(blockState.getBlock()));
+                                if (!user.isCreative()) {
+                                    user.awardStat(Stats.BLOCK_MINED.get(blockState.getBlock()));
                                     if (blockState.is(BlockTags.GUARDED_BY_PIGLINS)) {
                                         piglinsAngered = true;
                                     }
@@ -83,64 +87,59 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
                 }
 
                 if (amount > 0) {
-                    if (pEntity instanceof LivingEntity livingEntity) {
-                        pStack.hurtAndBreak(amount, livingEntity, (livingEntity1 -> livingEntity1.broadcastBreakEvent(EquipmentSlot.MAINHAND)));
-                        if (piglinsAngered && pEntity instanceof Player player) {
-                            PiglinAi.angerNearbyPiglins(player, false);
-                        }
-                    }
-                    else {
-                        pStack.hurt(amount, pLevel.random, null);
+                    pStack.hurtAndBreak(amount, user, (livingEntity1 -> livingEntity1.broadcastBreakEvent(EquipmentSlot.MAINHAND)));
+                    if (piglinsAngered) {
+                        PiglinAi.angerNearbyPiglins(user, false);
                     }
                 }
             }
 
-            if (pEntity instanceof LivingEntity livingEntity) {
-                for (Entity entity : pLevel.getEntities(pEntity, pEntity.getBoundingBox().inflate(REACH), entity -> !entity.isRemoved())) {
-                    // Steals nearby metallic items (ItemEntities)
-                    boolean isCreativeOrSpectatorPlayer = entity instanceof Player player && (player.isCreative() || player.isSpectator());
-                    if (entity instanceof ItemEntity itemEntity) {
-                        ItemStack itemStack = itemEntity.getItem();
-                        if (isMetallicItem(itemStack.getItem())) {
-                            if (livingEntity instanceof Player player) {
-                                itemEntity.playerTouch(player);
-                            }
-                            // Non-player entities that pick up items with magnet don't drop them when killed.
-                            // I would have to give each non-player a custom inventory, which would be too much trouble.
-//                            else {
-//                                livingEntity.onItemPickup(itemEntity);
-//                                livingEntity.take(itemEntity, itemStack.getCount());
-//                                itemEntity.discard();
-//                            }
-                        }
+            for (Entity entity : pLevel.getEntities(user, user.getBoundingBox().inflate(REACH), entity -> !entity.isRemoved())) {
+                // Steals nearby metallic items (ItemEntities)
+                boolean isUnpullablePlayer = entity instanceof Player player &&
+                        (player.isCreative() || player.isSpectator() || !ThingamabobsAndDoohickeysServerConfigs.MAGNET_AFFECTS_PLAYER.get());
+                if (entity instanceof ItemEntity itemEntity) {
+                    ItemStack itemStack = itemEntity.getItem();
+                    if (isMetallicItem(itemStack.getItem())) {
+                        itemEntity.playerTouch(user);
+                        // Non-user entities that pick up items with magnet don't drop them when killed.
+                        // I would have to give each non-user a custom inventory, which would be too much trouble.
                     }
-                    // Makes nearby entities drop their metallic items (if they are equipped on main/offhand slot)
-                    else if (entity instanceof LivingEntity livingEntity1 && !isCreativeOrSpectatorPlayer) {
-                        forceDropItemFromSlot(livingEntity1, EquipmentSlot.MAINHAND);
-                        forceDropItemFromSlot(livingEntity1, EquipmentSlot.OFFHAND);
-                    }
+                }
+                // Makes nearby entities drop their metallic items (if they are equipped on main/offhand slot)
+                else if (entity instanceof LivingEntity livingEntity && !isUnpullablePlayer) {
+                    forceDropItemFromSlot(livingEntity, EquipmentSlot.MAINHAND);
+                    forceDropItemFromSlot(livingEntity, EquipmentSlot.OFFHAND);
+                }
 
-                    if (isMetallicEntity(entity, isCreativeOrSpectatorPlayer) &&
-                            !isRidingEntity(entity.getVehicle(), pEntity) &&
-                            !isRidingEntity(pEntity.getVehicle(), entity)) {
-                        if (!isMetallicEntity(entity.getVehicle(), false)) {
-                            entity.stopRiding();
-                        }
-                        Vec3 vec3 = pEntity.position().subtract(entity.position());
-                        boolean isExplosivePastry = entity instanceof AbstractExplosivePastryEntity;
-                        if (vec3.length() > entity.getBbWidth() / 2 + pEntity.getBbWidth() / 2 + 0.25) {
-                            Vec3 vec31 = entity.getDeltaMovement().add(vec3);
-                            double decay = speedDecayFunction(vec31.length(), 3, REACH, 4);
-                            entity.setDeltaMovement(vec31.normalize().multiply(decay, pEntity.isOnGround() ? 1 : decay, decay));
-                        }
-                        if (isExplosivePastry) {
-                            ((AbstractExplosivePastryEntity) entity).stickToEntity(pEntity);
-                        }
-                        entity.resetFallDistance();
+                if (isMetallicEntity(entity, isUnpullablePlayer) &&
+                        !isRidingEntity(entity.getVehicle(), user) &&
+                        !isRidingEntity(user.getVehicle(), entity)) {
+                    if (!isMetallicEntity(entity.getVehicle(), false)) {
+                        entity.stopRiding();
                     }
+                    Vec3 vec3 = user.position().subtract(entity.position());
+                    if (vec3.length() > entity.getBbWidth() / 2 + user.getBbWidth() / 2 + 0.25) {
+                        Vec3 vec31 = entity.getDeltaMovement().add(vec3);
+                        double decay = speedDecayFunction(vec31.length(), 3, REACH, 4);
+                        if (entity instanceof Player) {
+                            entity.hurtMarked = true;
+                        }
+                        entity.setDeltaMovement(vec31.normalize().multiply(decay, user.isOnGround() ? 1 : decay, decay));
+                    }
+                    if (entity instanceof AbstractExplosivePastryEntity abstractExplosivePastryEntity) {
+                        abstractExplosivePastryEntity.stickToEntity(user);
+                    }
+                    entity.resetFallDistance();
                 }
             }
         }
+    }
+
+    private static boolean basicallyTheSameMagnet(ItemStack magnet1, ItemStack magnet2) {
+        boolean sameItemStack = ItemStack.matches(magnet1, magnet2);
+        boolean sameEnchantments = magnet1.getEnchantmentTags().equals(magnet2.getEnchantmentTags());
+        return sameItemStack && sameEnchantments;
     }
 
     // Equation that decreases the speed of the pulled-in entity the closer it gets to the magnet user.
@@ -151,13 +150,13 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
     }
 
     private static boolean isMetallicOre(Block block) {
-        return block == Blocks.IRON_ORE ||
-                block == Blocks.COPPER_ORE ||
-                block == Blocks.GOLD_ORE ||
-                block == Blocks.NETHER_GOLD_ORE ||
-                block == Blocks.DEEPSLATE_IRON_ORE ||
-                block == Blocks.DEEPSLATE_COPPER_ORE ||
-                block == Blocks.DEEPSLATE_GOLD_ORE;
+        ResourceLocation resourceLocation = ForgeRegistries.BLOCKS.getKey(block);
+        if (resourceLocation == null) {
+            return false;
+        }
+        String blockName = resourceLocation.getPath();
+        return (blockName.contains("ore") && (blockName.contains("iron") || blockName.contains("copper") || blockName.contains("gold"))) ||
+                blockName.contains("gilded");
     }
 
     private static void forceDropItemFromSlot(LivingEntity livingEntity, EquipmentSlot equipmentSlot) {
@@ -174,10 +173,8 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
         }
     }
 
-    private static boolean isMetallicEntity(Entity entity, boolean isCreativeOrSpectatorPlayer) {
-        // TODO config
-        boolean allowedToPullInPlayers = true;
-        if (!allowedToPullInPlayers || isCreativeOrSpectatorPlayer || entity == null) {
+    private static boolean isMetallicEntity(Entity entity, boolean isUnpullablePlayer) {
+        if (isUnpullablePlayer || entity == null) {
             return false;
         }
         for (ItemStack itemStack : entity.getArmorSlots()) {
@@ -220,7 +217,14 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return super.canApplyAtEnchantingTable(stack, enchantment) || enchantment == Enchantments.BLOCK_FORTUNE;
+        return super.canApplyAtEnchantingTable(stack, enchantment) ||
+                enchantment == Enchantments.BLOCK_FORTUNE ||
+                enchantment == Enchantments.SILK_TOUCH;
+    }
+
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return 1;
     }
 
     @Override

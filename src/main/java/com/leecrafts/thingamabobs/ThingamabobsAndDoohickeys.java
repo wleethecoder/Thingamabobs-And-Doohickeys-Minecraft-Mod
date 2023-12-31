@@ -1,5 +1,6 @@
 package com.leecrafts.thingamabobs;
 
+import com.leecrafts.thingamabobs.config.ThingamabobsAndDoohickeysClientConfigs;
 import com.leecrafts.thingamabobs.config.ThingamabobsAndDoohickeysServerConfigs;
 import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.entity.ModEntityTypes;
@@ -49,6 +50,7 @@ public class ThingamabobsAndDoohickeys
         GeckoLib.initialize();
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ThingamabobsAndDoohickeysServerConfigs.SPEC, "thingamabobs-server.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ThingamabobsAndDoohickeysClientConfigs.SPEC, "thingamabobs-client.toml");
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
