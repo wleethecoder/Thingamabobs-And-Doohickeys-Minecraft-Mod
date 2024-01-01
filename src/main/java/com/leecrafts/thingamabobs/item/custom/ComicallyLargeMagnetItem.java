@@ -51,7 +51,6 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
     @Override
     public void inventoryTick(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull Entity pEntity, int pSlotId, boolean pIsSelected) {
         super.inventoryTick(pStack, pLevel, pEntity, pSlotId, pIsSelected);
-        String name = pStack.getDisplayName().getString();
         if (pEntity instanceof Player user &&
                 !user.isSpectator() &&
                 (pIsSelected || basicallyTheSameMagnet(user.getOffhandItem(), pStack))) {
@@ -119,13 +118,14 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
                         entity.stopRiding();
                     }
                     Vec3 vec3 = user.position().subtract(entity.position());
-                    if (vec3.length() > entity.getBbWidth() / 2 + user.getBbWidth() / 2 + 0.25) {
-                        Vec3 vec31 = entity.getDeltaMovement().add(vec3);
-                        double decay = speedDecayFunction(vec31.length(), 3, REACH, 4);
+                    if (vec3.length() > entity.getBbWidth() / Math.sqrt(2) + user.getBbWidth() / Math.sqrt(2) + 0.25) {
+//                        Vec3 vec31 = entity.getDeltaMovement().add(vec3);
+                        double decay = speedDecayFunction(vec3.length(), 4, 3, REACH);
                         if (entity instanceof Player) {
                             entity.hurtMarked = true;
                         }
-                        entity.setDeltaMovement(vec31.normalize().multiply(decay, user.isOnGround() ? 1 : decay, decay));
+                        entity.setDeltaMovement(vec3.normalize().multiply(decay, user.isOnGround() ? 1 : decay, decay)
+                                .add(user.getDeltaMovement()));
                     }
                     if (entity instanceof AbstractExplosivePastryEntity abstractExplosivePastryEntity) {
                         abstractExplosivePastryEntity.stickToEntity(user);
@@ -137,9 +137,7 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
     }
 
     private static boolean basicallyTheSameMagnet(ItemStack magnet1, ItemStack magnet2) {
-        boolean sameItemStack = ItemStack.matches(magnet1, magnet2);
-        boolean sameEnchantments = magnet1.getEnchantmentTags().equals(magnet2.getEnchantmentTags());
-        return sameItemStack && sameEnchantments;
+        return ItemStack.matches(magnet1, magnet2) && magnet1.getEnchantmentTags().equals(magnet2.getEnchantmentTags());
     }
 
     // Equation that decreases the speed of the pulled-in entity the closer it gets to the magnet user.
