@@ -15,6 +15,7 @@ import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -102,20 +103,23 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
     @Override
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull LivingEntity pLivingEntity, int pTimeLeft) {
 //        System.out.println("clientside: " + pLevel.isClientSide + "; released. time charged (in ticks): " + (this.getUseDuration(pStack) - pTimeLeft));
-        if (!pLevel.isClientSide &&
-                1.0 * (this.getUseDuration(pStack) - pTimeLeft) / CrossbowItem.getChargeDuration(pStack) >= 1 &&
+        if (1.0 * (this.getUseDuration(pStack) - pTimeLeft) / CrossbowItem.getChargeDuration(pStack) >= 1 &&
                 !isCharged(pStack)) {
+            if (!pLevel.isClientSide) {
 //            System.out.println("\tpunchy glove is now charged");
-            setCharged(pStack, true);
+                setCharged(pStack, true);
 
-            // In case the client and server do not sync well.
-            // pTimeLeft can sometimes be different between the client and server sides (i.e. smaller value in client side due to server lag)
-            // Therefore, the weapon can appear not charged even when it is, as the server handles the animations.
+                // In case the client and server do not sync well.
+                // pTimeLeft can sometimes be different between the client and server sides (i.e. smaller value in client side due to server lag)
+                // Therefore, the weapon can appear not charged even when it is, as the server handles the animations.
 
-            // By the way, I am aware that packets can read ItemStacks, but for some reason, the NBT does not save data properly when I pass an itemStack through the packet.
-            InteractionHand interactionHand = pLivingEntity.getItemInHand(InteractionHand.MAIN_HAND).is(pStack.getItem()) ?
-                    InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-            PacketHandler.INSTANCE.sendToServer(new ServerboundSpringLoadedBoxingGloveAnimationPacket(interactionHand, pLivingEntity.getId()));
+                // By the way, I am aware that packets can read ItemStacks, but for some reason, the NBT does not save data properly when I pass an itemStack through the packet.
+                InteractionHand interactionHand = pLivingEntity.getItemInHand(InteractionHand.MAIN_HAND).is(pStack.getItem()) ?
+                        InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+                PacketHandler.INSTANCE.sendToServer(new ServerboundSpringLoadedBoxingGloveAnimationPacket(interactionHand, pLivingEntity.getId()));
+            }
+            SoundSource soundSource = pLivingEntity instanceof Player ? SoundSource.PLAYERS : SoundSource.HOSTILE;
+            pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundEvents.CROSSBOW_LOADING_END, soundSource, 1.0F, 1.0F / (pLevel.getRandom().nextFloat() * 0.5F + 1.0F) + 0.2F);
         }
         else {
             this.playAnimation(pLevel, pLivingEntity, pStack, "idle");
@@ -164,12 +168,6 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
         }
     }
 
-    // TODO to make it have crossbow sounds?
-    @Override
-    public void onUseTick(@NotNull Level pLevel, @NotNull LivingEntity pLivingEntity, @NotNull ItemStack pStack, int pCount) {
-//        super.onUseTick(pLevel, pLivingEntity, pStack, pCount);
-    }
-
     @Override
     public int getUseDuration(@NotNull ItemStack pStack) {
         return CrossbowItem.getChargeDuration(pStack) + 3;
@@ -182,25 +180,31 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
         }
     }
 
-    // TODO inevitable animation bugs when player drops item? (minor)
     @Override
     public void inventoryTick(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull Entity pEntity, int pSlotId, boolean pIsSelected) {
         super.inventoryTick(pStack, pLevel, pEntity, pSlotId, pIsSelected);
 
-        // In case the weapon gets "stuck"
-        if (pEntity.tickCount % TICKS_PER_SECOND == 0 &&
-                pIsSelected &&
-                isBoing(pStack) &&
-                pLevel.getEntitiesOfClass(BoxingGloveEntity.class, pEntity.getBoundingBox().inflate(40)).isEmpty()) {
-            resetState(pLevel, pEntity, pStack);
-        }
+        if (pEntity instanceof LivingEntity) {
+            boolean equipped = pIsSelected || basicallyTheSameItem(((LivingEntity) pEntity).getOffhandItem(), pStack);
+            // In case the weapon gets "stuck"
+            if (pEntity.tickCount % TICKS_PER_SECOND == 0 &&
+                    equipped &&
+                    isBoing(pStack) &&
+                    pLevel.getEntitiesOfClass(BoxingGloveEntity.class, pEntity.getBoundingBox().inflate(40)).isEmpty()) {
+                resetState(pLevel, pEntity, pStack);
+            }
 
-        if (isCharged(pStack)) {
-            this.playAnimation(pLevel, pEntity, pStack, "charge_idle");
+            if (isCharged(pStack)) {
+                this.playAnimation(pLevel, pEntity, pStack, "charge_idle");
+            }
+            else if (!equipped && !isBoing(pStack)) {
+                this.playAnimation(pLevel, pEntity, pStack, "idle");
+            }
         }
-        else if (!pIsSelected && !isBoing(pStack)) {
-            this.playAnimation(pLevel, pEntity, pStack, "idle");
-        }
+    }
+
+    private static boolean basicallyTheSameItem(ItemStack itemStack1, ItemStack itemStack2) {
+        return ItemStack.matches(itemStack1, itemStack2) && itemStack1.getEnchantmentTags().equals(itemStack2.getEnchantmentTags());
     }
 
     @Override

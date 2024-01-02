@@ -5,7 +5,6 @@ import com.leecrafts.thingamabobs.entity.custom.AbstractExplosivePastryEntity;
 import com.leecrafts.thingamabobs.item.client.ComicallyLargeMagnetRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.stats.Stats;
 import net.minecraft.tags.BlockTags;
@@ -53,7 +52,7 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
         super.inventoryTick(pStack, pLevel, pEntity, pSlotId, pIsSelected);
         if (pEntity instanceof Player user &&
                 !user.isSpectator() &&
-                (pIsSelected || basicallyTheSameMagnet(user.getOffhandItem(), pStack))) {
+                (pIsSelected || basicallyTheSameItem(user.getOffhandItem(), pStack))) {
             // Destroys nearby metallic ores
             // I tried using BlockPos.withinManhattan and BlockPos.betweenClosedStream, but neither seemed efficient
             int amount = 0;
@@ -136,8 +135,8 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
         }
     }
 
-    private static boolean basicallyTheSameMagnet(ItemStack magnet1, ItemStack magnet2) {
-        return ItemStack.matches(magnet1, magnet2) && magnet1.getEnchantmentTags().equals(magnet2.getEnchantmentTags());
+    private static boolean basicallyTheSameItem(ItemStack itemStack1, ItemStack itemStack2) {
+        return ItemStack.matches(itemStack1, itemStack2) && itemStack1.getEnchantmentTags().equals(itemStack2.getEnchantmentTags());
     }
 
     // Equation that decreases the speed of the pulled-in entity the closer it gets to the magnet user.

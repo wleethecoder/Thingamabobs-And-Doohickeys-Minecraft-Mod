@@ -41,8 +41,6 @@ public class BoxingGloveRenderer extends GeoEntityRenderer<BoxingGloveEntity> {
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
-    // TODO change color of spring
-    // TODO decrease width of spring
     public static void renderSpring(BoxingGloveEntity entity, Entity shooter, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         float gloveHalfWidth = entity.getBbWidth() / 2;
         double x;

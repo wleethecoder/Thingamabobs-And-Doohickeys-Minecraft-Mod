@@ -59,7 +59,7 @@ public class ServerboundSpringLoadedBoxingGloveAttackPacket {
                     BoxingGloveEntity boxingGloveEntity = new BoxingGloveEntity(level, shooter, weapon, this.projectileDamage);
                     boxingGloveEntity.shoot(shooter, new Vec3(this.shooterVelocityX, this.shooterVelocityY, this.shooterVelocityZ), this.projectileBaseMaxDistance);
                     level.addFreshEntity(boxingGloveEntity);
-                    level.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(), ModSounds.SPRING_LOADED_BOXING_GLOVE_BOING.get(), SoundSource.PLAYERS, 5.0f, (sender.getRandom().nextFloat() - sender.getRandom().nextFloat()) * 0.2f + 1.0f);
+                    level.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(), ModSounds.SPRING_LOADED_BOXING_GLOVE_BOING.get(), SoundSource.PLAYERS, 1.0f, (sender.getRandom().nextFloat() - sender.getRandom().nextFloat()) * 0.2f + 1.0f);
                     if (shooter instanceof ServerPlayer serverPlayer) {
                         serverPlayer.awardStat(Stats.ITEM_USED.get(weapon.getItem()));
                     }

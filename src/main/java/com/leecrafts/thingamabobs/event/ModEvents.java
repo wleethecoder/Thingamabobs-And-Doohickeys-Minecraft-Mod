@@ -91,14 +91,6 @@ public class ModEvents {
             }
         }
 
-        // TODO delete at very end
-        @SubscribeEvent
-        public static void damageTest(LivingDamageEvent event) {
-            if (!event.getEntity().level.isClientSide) {
-                System.out.println(event.getAmount() + " damage done to " + event.getEntity().getType().toShortString() + " via " + event.getSource().getMsgId());
-            }
-        }
-
         // Mobs (not players) attacking with the mallet are too strong, especially when the damage is scaled with the game's difficulty.
         // I cannot easily adjust the hard-coded attack speed of a mob, so I just decrease the amount of damage.
         // Since mobs attack once per second, I made the damage the same amount as the DPS of the mallet.

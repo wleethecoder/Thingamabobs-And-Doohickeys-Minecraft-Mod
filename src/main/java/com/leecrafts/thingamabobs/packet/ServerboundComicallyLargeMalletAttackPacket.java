@@ -83,7 +83,7 @@ public class ServerboundComicallyLargeMalletAttackPacket {
                 sender.getMainHandItem().hurtAndBreak(numberHitLiving, sender, (livingEntity -> livingEntity.broadcastBreakEvent(EquipmentSlot.MAINHAND)));
 
                 if (anythingHit) {
-                    sender.level.playSound(null, sender, ModSounds.COMICALLY_LARGE_MALLET_WHAM.get(), SoundSource.PLAYERS, 5.0f, (sender.getRandom().nextFloat() - sender.getRandom().nextFloat()) * 0.2f + 1.0f);
+                    sender.level.playSound(null, sender, ModSounds.COMICALLY_LARGE_MALLET_WHAM.get(), SoundSource.PLAYERS, 1.0f, (sender.getRandom().nextFloat() - sender.getRandom().nextFloat()) * 0.2f + 1.0f);
                 }
             }
         });

@@ -341,7 +341,7 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                         if (weapon != null && weapon.getItem() instanceof SpringLoadedBoxingGloveItem) {
                             weapon.hurtAndBreak(1, livingEntity1, (livingEntity2 -> livingEntity2.broadcastBreakEvent(EquipmentSlot.MAINHAND)));
                         }
-                        this.playSound(ModSounds.SPRING_LOADED_BOXING_GLOVE_BACKFIRE.get(), 5.0f, (this.random.nextFloat() - this.random.nextFloat()) * 0.2f + 1.0f);
+                        this.playSound(ModSounds.SPRING_LOADED_BOXING_GLOVE_BACKFIRE.get(), 1.0f, (this.random.nextFloat() - this.random.nextFloat()) * 0.2f + 1.0f);
                     }
                 }
                 else {
@@ -361,7 +361,7 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         this.setDeltaMovement(vec3);
         Vec3 vec31 = vec3.normalize().scale(0.05F);
         this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
-        this.playSound(SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, 2.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
+        this.playSound(SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
         this.inGround = true;
     }
 

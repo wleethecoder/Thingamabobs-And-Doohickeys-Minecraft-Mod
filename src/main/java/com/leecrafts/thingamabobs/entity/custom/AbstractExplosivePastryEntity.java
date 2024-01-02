@@ -21,6 +21,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -157,7 +159,6 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
 
     @Override
     public boolean hurt(@NotNull DamageSource pSource, float pAmount) {
-        // TODO it doesnt get affected by lava
         boolean hurt = super.hurt(pSource, pAmount);
         if (!this.willExplode() && this.getVehicle() == null && this.isLandmine()) {
             this.explode();
@@ -181,8 +182,9 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
 
     @Override
     protected void updateRotation() {
+        // I'd say it doesn't really rotate the right way for some reason, but it only latches onto its victim for 3 seconds,
+        // so I consider this issue minor.
         Entity vehicle = this.getVehicle();
-        // TODO it rotates the wrong way when the "vehicle" rotates
         Vec3 vec3;
         if (vehicle != null) {
             double yDiff = vehicle.getY() + vehicle.getBbHeight() / 2 - this.getY();
@@ -217,19 +219,12 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
                 ModItems.EXPLOSIVE_PUMPKIN_PIE_ITEM.get() : ModItems.EXPLOSIVE_CAKE_ITEM.get();
     }
 
-    private ParticleOptions getParticle() {
-        ItemStack itemStack = this.getItemRaw();
-        // TODO change
-        return itemStack.isEmpty() ? ParticleTypes.LANDING_HONEY : new ItemParticleOption(ParticleTypes.ITEM, itemStack);
-    }
-
     @Override
     public void handleEntityEvent(byte pId) {
         if (pId == 3) {
-            ParticleOptions particleoptions = this.getParticle();
-
             for(int i = 0; i < 8; ++i) {
-                this.level.addParticle(particleoptions, this.getX(), this.getY(), this.getZ(), 0.0D, 0.0D, 0.0D);
+                double d0 = 0.16D;
+                this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, this.getItem()), this.getX(), this.getY(), this.getZ(), ((double)this.random.nextFloat() - 0.5D) * d0, ((double)this.random.nextFloat() - 0.5D) * d0, ((double)this.random.nextFloat() - 0.5D) * d0);
             }
         }
     }
@@ -241,7 +236,8 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
         if (entity instanceof AbstractExplosivePastryEntity && entity.getVehicle() != null) {
             entity = entity.getVehicle();
         }
-        if (!(entity instanceof AbstractExplosivePastryEntity)) {
+        if (!(entity instanceof AbstractExplosivePastryEntity) &&
+                (this.getOwner() == null || !entity.is(this.getOwner()) || this.tickCount > TICKS_PER_SECOND / 2)) {
             if (entity instanceof LivingEntity && !(entity instanceof EnderDragon)) {
                 this.stickToEntity(entity);
             }
