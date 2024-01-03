@@ -175,7 +175,7 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
-    implementation fg.deobf('software.bernie.geckolib:geckolib-forge-1.20:4.2')
+    implementation fg.deobf('software.bernie.geckolib:geckolib-forge-1.20.1:4.3.1')
 
     //If you don't want to include the library in your jar, remove the include word
     implementation fg.deobf("dev.kosmx.player-anim:player-animation-lib-forge:1.0.2-rc1+1.20")
