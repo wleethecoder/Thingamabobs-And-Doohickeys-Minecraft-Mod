@@ -23,5 +23,8 @@
   "death.attack.wham": "%1$s was squashed into a pancake by %2$s",
   "death.attack.wham.item": "%1$s was squashed into a pancake by %2$s using %3$s",
   "death.attack.wallop": "%1$s was walloped into submission by %2$s",
-  "death.attack.wallop.item": "%1$s was walloped into submission by %2$s using %3$s"
+  "death.attack.wallop.item": "%1$s was walloped into submission by %2$s using %3$s",
+
+  "advancements.adventure.preposterous_outcome.title": "A Preposterous Outcome",
+  "advancements.adventure.preposterous_outcome.description": "Hit least 100 mobs simultaneously with a Comically Large Mallet or Spring-Loaded Boxing Glove"
 }

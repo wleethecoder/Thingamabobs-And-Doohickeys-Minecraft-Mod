@@ -1,0 +1,36 @@
+{
+  "parent": "minecraft:adventure/root",
+  "criteria": {
+    "preposterous_outcome": {
+      "conditions": {
+        "num_entities": {
+          "min": 100
+        }
+      },
+      "trigger": "thingamabobs:hit_by_aoe_weapon"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.adventure.preposterous_outcome.description"
+    },
+    "frame": "challenge",
+    "hidden": false,
+    "icon": {
+      "item": "minecraft:nether_star"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.adventure.preposterous_outcome.title"
+    }
+  },
+  "requirements": [
+    [
+      "preposterous_outcome"
+    ]
+  ],
+  "rewards": {
+    "experience": 500
+  }
+}

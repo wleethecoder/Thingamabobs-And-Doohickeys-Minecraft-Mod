@@ -1,5 +1,6 @@
 package com.leecrafts.thingamabobs.packet;
 
+import com.leecrafts.thingamabobs.criterion.ModCriteria;
 import com.leecrafts.thingamabobs.damage.ModDamageSources;
 import com.leecrafts.thingamabobs.sound.ModSounds;
 import net.minecraft.core.particles.ParticleTypes;
@@ -60,6 +61,7 @@ public class ServerboundComicallyLargeMalletAttackPacket {
                 String[] list = this.targetsString.split(",");
                 boolean anythingHit = false;
                 int numberHitLiving = 0;
+                int numberHitMob = 0;
                 for (String str : list) {
                     Entity entity = ((ServerLevel) sender.level).getEntityOrPart(Integer.parseInt(str));
                     if (entity != null) {
@@ -73,6 +75,9 @@ public class ServerboundComicallyLargeMalletAttackPacket {
                                 anythingHit = true;
                                 if (entity instanceof LivingEntity livingEntity && !livingEntity.isInvulnerableTo(damageSource)) {
                                     numberHitLiving++;
+                                    if (livingEntity instanceof Mob) {
+                                        numberHitMob++;
+                                    }
                                 }
                             }
                         }
@@ -85,6 +90,7 @@ public class ServerboundComicallyLargeMalletAttackPacket {
                 if (anythingHit) {
                     sender.level.playSound(null, sender, ModSounds.COMICALLY_LARGE_MALLET_WHAM.get(), SoundSource.PLAYERS, 1.0f, (sender.getRandom().nextFloat() - sender.getRandom().nextFloat()) * 0.2f + 1.0f);
                 }
+                ModCriteria.HIT_BY_AOE_WEAPON.trigger(sender, numberHitMob);
             }
         });
         ctx.get().setPacketHandled(true);

@@ -2,6 +2,7 @@ package com.leecrafts.thingamabobs.entity.custom;
 
 import com.google.common.collect.Lists;
 import com.leecrafts.thingamabobs.config.ThingamabobsAndDoohickeysServerConfigs;
+import com.leecrafts.thingamabobs.criterion.ModCriteria;
 import com.leecrafts.thingamabobs.damage.ModDamageSources;
 import com.leecrafts.thingamabobs.enchantment.ModEnchantments;
 import com.leecrafts.thingamabobs.entity.ModEntityTypes;
@@ -12,15 +13,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.item.PrimedTnt;
@@ -71,6 +70,7 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
     protected boolean isRebounding;
     protected int damageToItem;
     private int knockback;
+    private int numEntitiesHit;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public BoxingGloveEntity(EntityType<? extends BoxingGloveEntity> pEntityType, Level pLevel) {
@@ -78,6 +78,7 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
         this.inGround = false;
         this.isRebounding = false;
         this.damageToItem = 0;
+        this.numEntitiesHit = 0;
         this.noCulling = true;
     }
 
@@ -346,6 +347,12 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                 }
                 else {
                     this.damageToItem++;
+                }
+                if (target instanceof Mob) {
+                    this.numEntitiesHit++;
+                    if (!this.level.isClientSide && shooter instanceof ServerPlayer serverPlayer) {
+                        ModCriteria.HIT_BY_AOE_WEAPON.trigger(serverPlayer, this.numEntitiesHit);
+                    }
                 }
             }
             if (isSticky && !(target instanceof BoxingGloveEntity)) {
