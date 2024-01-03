@@ -17,9 +17,9 @@ public class HitByAOEWeaponTrigger extends SimpleCriterionTrigger<HitByAOEWeapon
     }
 
     @Override
-    protected @NotNull TriggerInstance createInstance(@NotNull JsonObject pJson, EntityPredicate.@NotNull Composite pPlayer, @NotNull DeserializationContext pContext) {
-        MinMaxBounds.Ints minMaxBounds = MinMaxBounds.Ints.fromJson(pJson.get("num_entities"));
-        return new HitByAOEWeaponTrigger.TriggerInstance(pPlayer, minMaxBounds);
+    protected @NotNull TriggerInstance createInstance(@NotNull JsonObject p_66248_, @NotNull ContextAwarePredicate p_286603_, @NotNull DeserializationContext p_66250_) {
+        MinMaxBounds.Ints minMaxBounds = MinMaxBounds.Ints.fromJson(p_66248_.get("num_entities"));
+        return new HitByAOEWeaponTrigger.TriggerInstance(p_286603_, minMaxBounds);
     }
 
     public void trigger(ServerPlayer serverPlayer, int numEntities) {
@@ -30,7 +30,7 @@ public class HitByAOEWeaponTrigger extends SimpleCriterionTrigger<HitByAOEWeapon
 
         private final MinMaxBounds.Ints entities;
 
-        public TriggerInstance(EntityPredicate.Composite player, MinMaxBounds.Ints entities) {
+        public TriggerInstance(ContextAwarePredicate player, MinMaxBounds.Ints entities) {
             super(HitByAOEWeaponTrigger.ID, player);
             this.entities = entities;
         }

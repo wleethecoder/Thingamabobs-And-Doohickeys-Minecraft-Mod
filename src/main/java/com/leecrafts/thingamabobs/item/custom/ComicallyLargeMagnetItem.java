@@ -123,7 +123,7 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
                         if (entity instanceof Player) {
                             entity.hurtMarked = true;
                         }
-                        entity.setDeltaMovement(vec3.normalize().multiply(decay, user.isOnGround() ? 1 : decay, decay)
+                        entity.setDeltaMovement(vec3.normalize().multiply(decay, user.onGround() ? 1 : decay, decay)
                                 .add(user.getDeltaMovement()));
                     }
                     if (entity instanceof AbstractExplosivePastryEntity abstractExplosivePastryEntity) {

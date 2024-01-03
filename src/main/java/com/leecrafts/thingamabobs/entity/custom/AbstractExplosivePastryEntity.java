@@ -10,7 +10,6 @@ import com.leecrafts.thingamabobs.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundExplodePacket;
@@ -21,8 +20,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageType;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -35,8 +32,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -85,7 +82,7 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
         super.tick();
         if (this.isLandmine()) {
             BlockState blockState = this.level.getBlockState(this.getLandminePos());
-            if (this.getVehicle() == null && !blockState.isAir() && !blockState.getMaterial().isLiquid()) {
+            if (this.getVehicle() == null && !blockState.isAir() && !(blockState.getBlock() instanceof LiquidBlock)) {
                 this.updateLandmineRot();
                 if (this.level instanceof ServerLevel) {
                     List<Entity> list = this.level.getEntities(this, this.getBoundingBox());
@@ -118,7 +115,7 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
 
         if (!this.isRemoved()) {
             BlockState blockState = this.level.getBlockState(this.blockPosition());
-            if (blockState.getMaterial().isLiquid()) {
+            if (blockState.getBlock() instanceof LiquidBlock) {
                 Item item = this instanceof ExplosivePumpkinPieEntity ? Items.PUMPKIN_PIE : Items.CAKE;
                 ItemEntity itemEntity = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), new ItemStack(item, 1));
                 this.level.addFreshEntity(itemEntity);
@@ -285,17 +282,20 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
             this.setPosFromDirection(pResult, direction);
             this.setLandminePos(pResult.getBlockPos());
             boolean freeSpaceFound = true;
-            if (this.level.getBlockState(BlockPos.containing(this.position())).getMaterial().isSolid()) {
+            BlockPos blockPos = BlockPos.containing(this.position());
+            BlockState blockState = this.level.getBlockState(blockPos);
+            if (blockState.isSolid()) {
                 freeSpaceFound = false;
                 for (Direction direction1 : Direction.values()) {
-                    if (!this.level.getBlockState(this.getLandminePos().relative(direction1)).getMaterial().isSolid()) {
+                    BlockPos blockPos1 = this.getLandminePos().relative(direction1);
+                    if (!this.level.getBlockState(blockPos1).isSolid()) {
                         this.setPosFromDirection(pResult, direction1);
                         freeSpaceFound = true;
                     }
                 }
             }
             if (freeSpaceFound) {
-                if (this.level.getBlockState(BlockPos.containing(this.position())).getMaterial().isSolid()) {
+                if (this.level.getBlockState(BlockPos.containing(this.position())).isSolid()) {
                     throw new IllegalStateException("Explosive pastry is in a solid block when it should not be (entity id " + this.getId() + ")");
                 }
             }

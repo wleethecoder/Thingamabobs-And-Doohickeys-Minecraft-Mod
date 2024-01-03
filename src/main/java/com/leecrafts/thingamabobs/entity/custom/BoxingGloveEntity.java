@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -34,9 +35,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SlimeBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -161,12 +162,14 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
                             BlockState blockState1 = this.level.getBlockState(blockPos);
                             Block block = blockState1.getBlock();
                             float hardness = block.defaultDestroyTime();
+                            ResourceLocation resourceLocation = ForgeRegistries.BLOCKS.getKey(blockState1.getBlock());
                             if (block instanceof SlimeBlock || block instanceof BedBlock) {
                                 this.setDeflected(true);
                                 break;
                             }
                             else if (ThingamabobsAndDoohickeysServerConfigs.PUNCHY_GLOVE_GRIEFING.get() &&
-                                    blockState1.getMaterial() != Material.LEAVES &&
+                                    resourceLocation != null &&
+                                    !resourceLocation.getPath().contains("leaves") &&
                                     hardness >= 0.0f &&
                                     hardness <= 0.3f &&
                                     this.mayInteract(this.level, blockPos)) {
@@ -393,7 +396,8 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
             for (Entity entity : this.getPassengers()) {
                 Vec3 vec3 = !(entity instanceof LivingEntity) ? shooter.position() :
                         shooter.position().add(this.position().subtract(shooter.position()).normalize().scale(1 + shooter.getBbWidth() / 2));
-                int dismountOffset = this.level.getBlockState(entity.blockPosition()).getMaterial().isSolid() ? 1 : 0;
+                BlockPos blockPos = entity.blockPosition();
+                int dismountOffset = this.level.getBlockState(blockPos).isSolid() ? 1 : 0;
                 entity.stopRiding();
                 entity.teleportTo(vec3.x, vec3.y + dismountOffset, vec3.z);
             }
@@ -408,16 +412,11 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
     }
 
     @Override
-    public void positionRider(@NotNull Entity pPassenger) {
+    protected void positionRider(@NotNull Entity pPassenger, @NotNull MoveFunction pCallback) {
         if (this.hasPassenger(pPassenger)) {
-            this.entityMoveFunction(pPassenger);
+            double d0 = this.getY() + this.getPassengersRidingOffset() - pPassenger.getBbHeight() / 2.0f;
+            pCallback.accept(pPassenger, this.getX(), d0, this.getZ());
         }
-    }
-
-    private void entityMoveFunction(Entity entity) {
-        double d0 = this.getY() + this.getPassengersRidingOffset() - entity.getBbHeight() / 2.0f;
-        Entity.MoveFunction callback = Entity::setPos;
-        callback.accept(entity, this.getX(), d0, this.getZ());
     }
 
     @Override
