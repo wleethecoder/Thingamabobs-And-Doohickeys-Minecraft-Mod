@@ -39,8 +39,8 @@ import static net.minecraft.SharedConstants.TICKS_PER_SECOND;
 
 public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForgeItem, GeoItem {
 
-    private static final double REACH = 8;
-
+    private static final double BLOCK_REACH = 4;
+    private static final double ENTITY_REACH = 6;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this, true);
 
     public ComicallyLargeMagnetItem(Properties pProperties) {
@@ -58,9 +58,9 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
             int amount = 0;
             boolean piglinsAngered = false;
             if (!pLevel.isClientSide && user.tickCount % (TICKS_PER_SECOND / 2) == 0) {
-                for (double x = -REACH; x <= REACH; x++) {
-                    for (double y = -REACH; y <= REACH; y++) {
-                        for (double z = -REACH; z <= REACH; z++) {
+                for (double x = -BLOCK_REACH; x <= BLOCK_REACH; x++) {
+                    for (double y = -BLOCK_REACH; y <= BLOCK_REACH; y++) {
+                        for (double z = -BLOCK_REACH; z <= BLOCK_REACH; z++) {
                             BlockPos blockPos = user.blockPosition().offset((int) x, (int) y, (int) z);
                             BlockState blockState = pLevel.getBlockState(blockPos);
                             if (isMetallicOre(blockState.getBlock())) {
@@ -92,7 +92,7 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
                 }
             }
 
-            for (Entity entity : pLevel.getEntities(user, user.getBoundingBox().inflate(REACH), entity -> !entity.isRemoved())) {
+            for (Entity entity : pLevel.getEntities(user, user.getBoundingBox().inflate(ENTITY_REACH), entity -> !entity.isRemoved())) {
                 // Steals nearby metallic items (ItemEntities)
                 boolean isUnpullablePlayer = entity instanceof Player player &&
                         (player.isCreative() || player.isSpectator() || !ThingamabobsAndDoohickeysServerConfigs.MAGNET_AFFECTS_PLAYER.get());
@@ -119,7 +119,7 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
                     Vec3 vec3 = user.position().subtract(entity.position());
                     if (vec3.length() > entity.getBbWidth() / Math.sqrt(2) + user.getBbWidth() / Math.sqrt(2) + 0.25) {
 //                        Vec3 vec31 = entity.getDeltaMovement().add(vec3);
-                        double decay = speedDecayFunction(vec3.length(), 4, 3, REACH);
+                        double decay = speedDecayFunction(vec3.length(), 4, 3, ENTITY_REACH);
                         if (entity instanceof Player) {
                             entity.hurtMarked = true;
                         }
@@ -199,6 +199,7 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
         return itemName.contains("iron") ||
                 itemName.contains("copper") ||
                 itemName.contains("gold") ||
+                itemName.contains("gilded") ||
                 itemName.contains("bucket") ||
                 itemName.contains("minecart") ||
                 itemName.contains("steel") ||
