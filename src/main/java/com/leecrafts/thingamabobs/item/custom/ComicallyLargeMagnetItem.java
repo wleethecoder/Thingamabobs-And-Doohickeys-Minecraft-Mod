@@ -197,6 +197,7 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
     private static boolean isMetallicItem(Item item) {
         String itemName = item.toString();
         return itemName.contains("iron") ||
+                itemName.contains("chain") ||
                 itemName.contains("copper") ||
                 itemName.contains("gold") ||
                 itemName.contains("gilded") ||
@@ -210,6 +211,8 @@ public class ComicallyLargeMagnetItem extends Item implements Vanishable, IForge
                 itemName.contains("lightning_rod") ||
                 itemName.contains("clock") ||
                 itemName.contains("mallet") ||
+                itemName.contains("punchy") ||
+                itemName.contains("explosive") ||
                 itemName.contains("magnet");
     }
 
