@@ -29,6 +29,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
@@ -424,7 +425,7 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
 
     // This will make explosion-caused deflections more consistent
     @Override
-    public boolean ignoreExplosion() {
+    public boolean ignoreExplosion(@NotNull Explosion p_309517_) {
         return true;
     }
 

@@ -1,8 +1,13 @@
 package com.leecrafts.thingamabobs.criterion.custom;
 
-import com.google.gson.JsonObject;
-import net.minecraft.advancements.critereon.*;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.advancements.critereon.ContextAwarePredicate;
+import net.minecraft.advancements.critereon.EntityPredicate;
+import net.minecraft.advancements.critereon.MinMaxBounds;
+import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ExtraCodecs;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -10,34 +15,28 @@ import java.util.Optional;
 public class HitByAOEWeaponTrigger extends SimpleCriterionTrigger<HitByAOEWeaponTrigger.TriggerInstance> {
 
     @Override
-    protected @NotNull TriggerInstance createInstance(@NotNull JsonObject p_66248_, @NotNull Optional<ContextAwarePredicate> p_286603_, @NotNull DeserializationContext p_66250_) {
-        MinMaxBounds.Ints minMaxBounds = MinMaxBounds.Ints.fromJson(p_66248_.get("num_entities"));
-        return new HitByAOEWeaponTrigger.TriggerInstance(p_286603_, minMaxBounds);
+    public @NotNull Codec<TriggerInstance> codec() {
+        return TriggerInstance.CODEC;
     }
 
     public void trigger(ServerPlayer serverPlayer, int numEntities) {
-        this.trigger(serverPlayer, triggerInstance -> triggerInstance.atLeast(numEntities));
+        this.trigger(serverPlayer, triggerInstance -> triggerInstance.matches(numEntities));
     }
 
-    public static class TriggerInstance extends AbstractCriterionTriggerInstance {
+    public record TriggerInstance(Optional<ContextAwarePredicate> player, MinMaxBounds.Ints entities) implements SimpleCriterionTrigger.SimpleInstance {
 
-        private final MinMaxBounds.Ints entities;
+        public static final Codec<HitByAOEWeaponTrigger.TriggerInstance> CODEC = RecordCodecBuilder.create((p_311996_) -> p_311996_.group(
+                ExtraCodecs.strictOptionalField(EntityPredicate.ADVANCEMENT_CODEC, "player").forGetter(TriggerInstance::player),
+                ExtraCodecs.strictOptionalField(MinMaxBounds.Ints.CODEC, "num_entities", MinMaxBounds.Ints.ANY).forGetter(TriggerInstance::entities)).apply(p_311996_, TriggerInstance::new));
 
-        public TriggerInstance(Optional<ContextAwarePredicate> player, MinMaxBounds.Ints entities) {
-            super(player);
-            this.entities = entities;
-        }
-
-        public boolean atLeast(int numEntities) {
+        public boolean matches(int numEntities) {
             return this.entities.matches(numEntities);
         }
 
-        @Override
-        public @NotNull JsonObject serializeToJson() {
-            JsonObject jsonObject = super.serializeToJson();
-            jsonObject.add("num_entities", this.entities.serializeToJson());
-            return jsonObject;
+        public @NotNull Optional<ContextAwarePredicate> player() {
+            return this.player;
         }
+
     }
 
 }

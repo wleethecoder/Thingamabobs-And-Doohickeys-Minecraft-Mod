@@ -18,6 +18,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -127,7 +128,9 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
     public void explode() {
         if (this.level instanceof ServerLevel serverLevel) {
 //        serverLevel.explode(this, this.getX(), this.getY(), this.getZ(), BLAST_RADIUS, Level.ExplosionInteraction.NONE);
-            boolean griefing = ThingamabobsAndDoohickeysServerConfigs.EXPLOSIVE_PASTRY_GRIEFING.get();
+            Explosion.BlockInteraction blockInteraction =
+                    ThingamabobsAndDoohickeysServerConfigs.EXPLOSIVE_PASTRY_GRIEFING.get() ?
+                            Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.KEEP;
             FixedDamageExplosion fixedDamageExplosion = new FixedDamageExplosion(
                     serverLevel,
                     this,
@@ -136,7 +139,8 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
                     this.getZ(),
                     BLAST_RADIUS,
                     DAMAGE,
-                    griefing ? Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.KEEP);
+                    false,
+                    blockInteraction);
             if (!ForgeEventFactory.onExplosionStart(serverLevel, fixedDamageExplosion)) {
                 this.setWillExplode(true);
                 fixedDamageExplosion.explode();
@@ -147,7 +151,17 @@ public class AbstractExplosivePastryEntity extends ThrowableItemProjectile imple
             }
             for (ServerPlayer serverPlayer : serverLevel.players()) {
                 if (serverPlayer.distanceToSqr(this.getX(), this.getY(), this.getZ()) < 4096.0D) {
-                    serverPlayer.connection.send(new ClientboundExplodePacket(this.getX(), this.getY(), this.getZ(), BLAST_RADIUS, fixedDamageExplosion.getToBlow(), fixedDamageExplosion.getHitPlayers().get(serverPlayer)));
+                    serverPlayer.connection.send(new ClientboundExplodePacket(
+                            this.getX(),
+                            this.getY(),
+                            this.getZ(),
+                            BLAST_RADIUS,
+                            fixedDamageExplosion.getToBlow(),
+                            fixedDamageExplosion.getHitPlayers().get(serverPlayer),
+                            Explosion.BlockInteraction.DESTROY,
+                            ParticleTypes.EXPLOSION,
+                            ParticleTypes.EXPLOSION_EMITTER,
+                            SoundEvents.GENERIC_EXPLODE));
                 }
             }
             this.discard();
