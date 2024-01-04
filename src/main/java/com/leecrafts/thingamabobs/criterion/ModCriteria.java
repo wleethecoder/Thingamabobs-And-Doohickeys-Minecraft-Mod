@@ -17,7 +17,7 @@ public class ModCriteria {
         @SubscribeEvent
         public static void commonSetup(FMLCommonSetupEvent event) {
             event.enqueueWork(() -> {
-                HIT_BY_AOE_WEAPON = CriteriaTriggers.register(new HitByAOEWeaponTrigger());
+                HIT_BY_AOE_WEAPON = CriteriaTriggers.register(ThingamabobsAndDoohickeys.MODID + ":hit_by_aoe_weapon", new HitByAOEWeaponTrigger());
             });
         }
 

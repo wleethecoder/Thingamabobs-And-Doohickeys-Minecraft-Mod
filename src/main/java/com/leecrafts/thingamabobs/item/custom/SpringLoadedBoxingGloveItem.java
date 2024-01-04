@@ -9,8 +9,8 @@ import com.leecrafts.thingamabobs.packet.ServerboundSpringLoadedBoxingGloveAnima
 import com.leecrafts.thingamabobs.packet.ServerboundSpringLoadedBoxingGloveAttackPacket;
 import com.leecrafts.thingamabobs.sound.ModSounds;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -34,6 +34,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.common.extensions.IForgeItem;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -116,7 +117,9 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
                 // By the way, I am aware that packets can read ItemStacks, but for some reason, the NBT does not save data properly when I pass an itemStack through the packet.
                 InteractionHand interactionHand = pLivingEntity.getItemInHand(InteractionHand.MAIN_HAND).is(pStack.getItem()) ?
                         InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-                PacketHandler.INSTANCE.sendToServer(new ServerboundSpringLoadedBoxingGloveAnimationPacket(interactionHand, pLivingEntity.getId()));
+                PacketHandler.INSTANCE.send(
+                        new ServerboundSpringLoadedBoxingGloveAnimationPacket(interactionHand, pLivingEntity.getId()),
+                        PacketDistributor.SERVER.noArg());
             }
             SoundSource soundSource = pLivingEntity instanceof Player ? SoundSource.PLAYERS : SoundSource.HOSTILE;
             pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundEvents.CROSSBOW_LOADING_END, soundSource, 1.0F, 1.0F / (pLevel.getRandom().nextFloat() * 0.5F + 1.0F) + 0.2F);
@@ -163,8 +166,9 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
             Vec3 vec3 = shooter.getDeltaMovement();
             // The shooter's speed adds to the projectile's initial speed and maximum distance
             // The server does not handle player movement logic, so a packet must be sent from the client to the server
-            PacketHandler.INSTANCE.sendToServer(new ServerboundSpringLoadedBoxingGloveAttackPacket(
-                    shooter.getId(), interactionHand, vec3.x, vec3.y, vec3.z, PROJECTILE_DAMAGE, getBaseMaxProjectileDistance(itemStack)));
+            PacketHandler.INSTANCE.send(new ServerboundSpringLoadedBoxingGloveAttackPacket(
+                    shooter.getId(), interactionHand, vec3.x, vec3.y, vec3.z, PROJECTILE_DAMAGE, getBaseMaxProjectileDistance(itemStack)),
+                    PacketDistributor.SERVER.noArg());
         }
     }
 
@@ -295,23 +299,24 @@ public class SpringLoadedBoxingGloveItem extends CrossbowItem implements Vanisha
 
         @Override
         protected @NotNull ItemStack execute(@NotNull BlockSource pSource, @NotNull ItemStack pStack) {
-            ServerLevel serverLevel = pSource.getLevel();
-            Direction direction = pSource.getBlockState().getValue(DispenserBlock.FACING);
+            ServerLevel serverLevel = pSource.level();
+            Direction direction = pSource.state().getValue(DispenserBlock.FACING);
             Vec3 vec3 = Vec3.atLowerCornerOf(direction.getNormal());
             if (isBoingFromDispenser(pStack) &&
-                    !serverLevel.getEntitiesOfClass(BoxingGloveEntity.class, new AABB(pSource.getPos()).expandTowards(vec3.scale(30))).isEmpty()) {
+                    !serverLevel.getEntitiesOfClass(BoxingGloveEntity.class, new AABB(pSource.pos()).expandTowards(vec3.scale(30))).isEmpty()) {
                 this.setSuccess(false);
             }
             else {
+                Vec3 vec31 = pSource.center();
                 BoxingGloveEntity boxingGloveEntity =
-                        new BoxingGloveEntity(serverLevel, pSource.x(), pSource.y(), pSource.z(), pStack, PROJECTILE_DAMAGE);
+                        new BoxingGloveEntity(serverLevel, vec31.x, vec31.y, vec31.z, pStack, PROJECTILE_DAMAGE);
                 boxingGloveEntity.shoot(vec3, getBaseMaxProjectileDistance(pStack));
                 serverLevel.addFreshEntity(boxingGloveEntity);
                 serverLevel.playSound(
                         null,
-                        pSource.x(),
-                        pSource.y(),
-                        pSource.z(),
+                        vec31.x,
+                        vec31.y,
+                        vec31.z,
                         ModSounds.SPRING_LOADED_BOXING_GLOVE_BOING.get(),
                         SoundSource.BLOCKS,
                         1.0f,

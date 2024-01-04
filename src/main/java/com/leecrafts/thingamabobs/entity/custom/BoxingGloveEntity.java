@@ -407,16 +407,13 @@ public class BoxingGloveEntity extends Projectile implements GeoAnimatable {
     }
 
     @Override
-    public double getPassengersRidingOffset() {
-        return this.getBbHeight() * 0.5;
+    protected float ridingOffset(@NotNull Entity pEntity) {
+        return (float) (this.getBbHeight() * 0.5);
     }
 
     @Override
-    protected void positionRider(@NotNull Entity pPassenger, @NotNull MoveFunction pCallback) {
-        if (this.hasPassenger(pPassenger)) {
-            double d0 = this.getY() + this.getPassengersRidingOffset() - pPassenger.getBbHeight() / 2.0f;
-            pCallback.accept(pPassenger, this.getX(), d0, this.getZ());
-        }
+    public @NotNull Vec3 getPassengerRidingPosition(@NotNull Entity pEntity) {
+        return super.getPassengerRidingPosition(pEntity).subtract(0, pEntity.getBbHeight() / 2, 0);
     }
 
     @Override

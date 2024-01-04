@@ -11,9 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
 public class ServerboundSpringLoadedBoxingGloveAttackPacket {
 
@@ -49,9 +47,9 @@ public class ServerboundSpringLoadedBoxingGloveAttackPacket {
         buffer.writeFloat(this.projectileBaseMaxDistance);
     }
 
-    public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            ServerPlayer sender = ctx.get().getSender();
+    public void handle(CustomPayloadEvent.Context ctx) {
+        ctx.enqueueWork(() -> {
+            ServerPlayer sender = ctx.getSender();
             if (sender != null) {
                 Level level = sender.level;
                 if (level.getEntity(this.shooterId) instanceof LivingEntity shooter) {
@@ -66,7 +64,7 @@ public class ServerboundSpringLoadedBoxingGloveAttackPacket {
                 }
             }
         });
-        ctx.get().setPacketHandled(true);
+        ctx.setPacketHandled(true);
     }
 
 }

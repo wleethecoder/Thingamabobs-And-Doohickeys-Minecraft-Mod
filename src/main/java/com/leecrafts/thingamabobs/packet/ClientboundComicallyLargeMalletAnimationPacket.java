@@ -11,11 +11,10 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
 
 import java.io.IOException;
-import java.util.function.Supplier;
 
 import static com.leecrafts.thingamabobs.event.ModEvents.ClientForgeEvents.*;
 
@@ -47,8 +46,8 @@ public class ClientboundComicallyLargeMalletAnimationPacket {
         buffer.writeBytes(this.animBytes);
     }
 
-    public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+    public void handle(CustomPayloadEvent.Context ctx) {
+        ctx.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             LocalPlayer thisPlayer = Minecraft.getInstance().player;
             if (thisPlayer != null) {
                 if (thisPlayer.level.getEntity(this.playerId) instanceof AbstractClientPlayer trackedPlayer) {
@@ -89,6 +88,7 @@ public class ClientboundComicallyLargeMalletAnimationPacket {
                 }
             }
         }));
+        ctx.setPacketHandled(true);
     }
 
 }

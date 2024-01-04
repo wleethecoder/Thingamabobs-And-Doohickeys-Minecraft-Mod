@@ -3,10 +3,8 @@ package com.leecrafts.thingamabobs.packet;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 import net.minecraftforge.network.PacketDistributor;
-
-import java.util.function.Supplier;
 
 public class ServerboundComicallyLargeMalletAnimationPacket {
 
@@ -33,16 +31,17 @@ public class ServerboundComicallyLargeMalletAnimationPacket {
         buffer.writeBytes(this.animBytes);
     }
 
-    public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            ServerPlayer sender = ctx.get().getSender();
+    public void handle(CustomPayloadEvent.Context ctx) {
+        ctx.enqueueWork(() -> {
+            ServerPlayer sender = ctx.getSender();
             if (sender != null) {
 //                System.out.println("packet is sent to the server. now another one will be sent to the client. (player " + sender.getId() + ")");
-                PacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> sender),
-                        new ClientboundComicallyLargeMalletAnimationPacket(sender.getId(), this.animSpeed, this.mirrored, this.fade, this.animBytes));
+                PacketHandler.INSTANCE.send(
+                        new ClientboundComicallyLargeMalletAnimationPacket(sender.getId(), this.animSpeed, this.mirrored, this.fade, this.animBytes),
+                        PacketDistributor.TRACKING_ENTITY_AND_SELF.with(sender));
             }
         });
-        ctx.get().setPacketHandled(true);
+        ctx.setPacketHandled(true);
     }
 
 }

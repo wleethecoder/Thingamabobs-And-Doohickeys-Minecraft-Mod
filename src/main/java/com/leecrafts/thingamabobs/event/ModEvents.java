@@ -54,6 +54,7 @@ import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.nio.ByteBuffer;
 
@@ -303,15 +304,17 @@ public class ModEvents {
                                     if (playerMalletCap.malletCharge >= chargeTime) {
                                         double radius = localPlayer.getEntityReach() / 2;
                                         StringBuilder listString = getHitEntities(localPlayer, radius);
-                                        PacketHandler.INSTANCE.sendToServer(
-                                                new ServerboundComicallyLargeMalletAttackPacket(playerMalletCap.malletCharge, listString.toString(), rightMouse));
+                                        PacketHandler.INSTANCE.send(
+                                                new ServerboundComicallyLargeMalletAttackPacket(playerMalletCap.malletCharge, listString.toString(), rightMouse),
+                                                PacketDistributor.SERVER.noArg());
                                     }
                                     else {
                                         HitResult hitResult = minecraft.hitResult;
                                         if (hitResult != null && hitResult.getType() == HitResult.Type.ENTITY) {
                                             int entityId = ((EntityHitResult) hitResult).getEntity().getId();
-                                            PacketHandler.INSTANCE.sendToServer(
-                                                    new ServerboundComicallyLargeMalletAttackPacket(playerMalletCap.malletCharge, String.valueOf(entityId), rightMouse));
+                                            PacketHandler.INSTANCE.send(
+                                                    new ServerboundComicallyLargeMalletAttackPacket(playerMalletCap.malletCharge, String.valueOf(entityId), rightMouse),
+                                                    PacketDistributor.SERVER.noArg());
                                         }
                                     }
 
@@ -324,8 +327,9 @@ public class ModEvents {
                                     if (animation != null && keyframeAnimation != null) {
                                         KeyframeAnimation modifiedAnimation = setEnabledHeadMovement(keyframeAnimation, false, true);
                                         ByteBuf animBytes = convertToBytes(modifiedAnimation);
-                                        PacketHandler.INSTANCE.sendToServer(
-                                                new ServerboundComicallyLargeMalletAnimationPacket(1.0f, mirrored, false, animBytes));
+                                        PacketHandler.INSTANCE.send(
+                                                new ServerboundComicallyLargeMalletAnimationPacket(1.0f, mirrored, false, animBytes),
+                                                PacketDistributor.SERVER.noArg());
                                         playerMalletCap.thirdPersonMalletSwingAnim = 0;
                                     }
                                 }
@@ -338,8 +342,9 @@ public class ModEvents {
                                 if (!playerMalletCap.thirdPersonMalletAnimWasStopped) {
                                     var animation = getAnimation(localPlayer);
                                     if (animation != null) {
-                                        PacketHandler.INSTANCE.sendToServer(
-                                                new ServerboundComicallyLargeMalletAnimationPacket(-1.0f, mirrored, false, EMPTY_BYTES));
+                                        PacketHandler.INSTANCE.send(
+                                                new ServerboundComicallyLargeMalletAnimationPacket(-1.0f, mirrored, false, EMPTY_BYTES),
+                                                PacketDistributor.SERVER.noArg());
                                     }
                                     playerMalletCap.thirdPersonMalletAnimWasStopped = true;
                                 }
@@ -365,8 +370,9 @@ public class ModEvents {
                                         KeyframeAnimation modifiedAnimation1 = setEnabledHeadMovement(modifiedAnimation, false, false);
 
                                         ByteBuf animBytes = convertToBytes(modifiedAnimation1);
-                                        PacketHandler.INSTANCE.sendToServer(
-                                                new ServerboundComicallyLargeMalletAnimationPacket(1.0f, mirrored, true, animBytes));
+                                        PacketHandler.INSTANCE.send(
+                                                new ServerboundComicallyLargeMalletAnimationPacket(1.0f, mirrored, true, animBytes),
+                                                PacketDistributor.SERVER.noArg());
                                         playerMalletCap.thirdPersonMalletAnimWasIdle = true;
                                     }
                                 }
@@ -384,11 +390,12 @@ public class ModEvents {
                                             KeyframeAnimation modifiedAnimation = setEnabledLegMovement(keyframeAnimation, false);
                                             KeyframeAnimation modifiedAnimation1 = setEnabledHeadMovement(modifiedAnimation, false, false);
                                             ByteBuf animBytes = convertToBytes(modifiedAnimation1);
-                                            PacketHandler.INSTANCE.sendToServer(
+                                            PacketHandler.INSTANCE.send(
                                                     new ServerboundComicallyLargeMalletAnimationPacket(
                                                             1.0f * BASE_CHARGE_TIME / (chargeTime - playerMalletCap.malletCharge),
                                                             mirrored, true, animBytes
-                                                    )
+                                                    ),
+                                                    PacketDistributor.SERVER.noArg()
                                             );
                                             playerMalletCap.thirdPersonMalletWasCharging = true;
                                         }
@@ -398,8 +405,9 @@ public class ModEvents {
                             else if (playerMalletCap.malletCharge == chargeTime && !playerMalletCap.thirdPersonMalletAnimWasPaused) {
                                 var animation = getAnimation(localPlayer);
                                 if (animation != null) {
-                                    PacketHandler.INSTANCE.sendToServer(
-                                            new ServerboundComicallyLargeMalletAnimationPacket(0.0f, mirrored, false, EMPTY_BYTES));
+                                    PacketHandler.INSTANCE.send(
+                                            new ServerboundComicallyLargeMalletAnimationPacket(0.0f, mirrored, false, EMPTY_BYTES),
+                                            PacketDistributor.SERVER.noArg());
                                 }
                                 playerMalletCap.thirdPersonMalletAnimWasPaused = true;
                             }

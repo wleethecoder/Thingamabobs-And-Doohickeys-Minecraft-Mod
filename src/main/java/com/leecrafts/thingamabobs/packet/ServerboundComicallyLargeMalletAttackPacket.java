@@ -23,9 +23,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
 public class ServerboundComicallyLargeMalletAttackPacket {
 
@@ -49,9 +47,9 @@ public class ServerboundComicallyLargeMalletAttackPacket {
         buffer.writeBoolean(this.indiscriminate);
     }
 
-    public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            ServerPlayer sender = ctx.get().getSender();
+    public void handle(CustomPayloadEvent.Context ctx) {
+        ctx.enqueueWork(() -> {
+            ServerPlayer sender = ctx.getSender();
             if (sender != null) {
 //                DamageSource sampleDamageSource = sender.damageSources().playerAttack(sender);
                 DamageSource damageSource = new ModDamageSources(sender.level.registryAccess()).wham(sender);
@@ -90,7 +88,7 @@ public class ServerboundComicallyLargeMalletAttackPacket {
                 ModCriteria.HIT_BY_AOE_WEAPON.trigger(sender, numberHitMob);
             }
         });
-        ctx.get().setPacketHandled(true);
+        ctx.setPacketHandled(true);
     }
 
     private static boolean isTouchable(Entity entity) {

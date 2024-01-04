@@ -8,9 +8,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
 public class ServerboundSpringLoadedBoxingGloveAnimationPacket {
 
@@ -31,9 +29,9 @@ public class ServerboundSpringLoadedBoxingGloveAnimationPacket {
         buffer.writeInt(this.shooterId);
     }
 
-    public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            ServerPlayer sender = ctx.get().getSender();
+    public void handle(CustomPayloadEvent.Context ctx) {
+        ctx.enqueueWork(() -> {
+            ServerPlayer sender = ctx.getSender();
             if (sender != null) {
                 Level level = sender.level;
                 Entity shooter = level.getEntity(this.shooterId);
@@ -46,7 +44,7 @@ public class ServerboundSpringLoadedBoxingGloveAnimationPacket {
                 }
             }
         });
-        ctx.get().setPacketHandled(true);
+        ctx.setPacketHandled(true);
     }
 
 }
